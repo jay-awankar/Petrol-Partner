@@ -40,3 +40,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 dependencies > npm i @clerk/nextjs @supabase/supabase-js @supabase/ssr mapbox-gl razorpay clsx zod date-fns
 dev dependencies > npm install -D @types/mapbox-gl
 ui components > npx shadcn@latest init 
+npm i framer-motion
+npm i tailwindcss-animate  
