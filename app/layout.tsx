@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
-import Header from "@/components/header";
+import Navbar from "@/components/Navbar";
 
 const poppins = Poppins({
   subsets: ["latin"],   // add more if needed
@@ -22,21 +22,14 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
-  // check if current path is landing page
-  const pathname =
-    typeof window !== "undefined" ? window.location.pathname : "";
-
-  const showNavbar = pathname !== "/";
-
   return (
     <ClerkProvider>
       <html lang="en">
         <body
           className={`${poppins.variable} font-sans antialiased min-h-screen bg-gradient-to-b from-blue-50 to-blue-100`}
           >
-            {showNavbar === false ? <Header /> : <></>}
-          <main className="">{children}</main>
+          <Navbar />
+          {children}
         </body>
       </html>
     </ClerkProvider>

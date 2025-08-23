@@ -42,3 +42,5 @@ dev dependencies > npm install -D @types/mapbox-gl
 ui components > npx shadcn@latest init 
 npm i framer-motion
 npm i tailwindcss-animate  
+npm install lottie-react
+npm install motion

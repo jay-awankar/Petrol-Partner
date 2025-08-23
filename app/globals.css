@@ -65,6 +65,11 @@
     hsl(204 94% 62%),
     hsl(204 94% 75%)
   );
+  --gradient-nav: linear-gradient(
+    135deg,
+    hsl(204, 100%, 35%),
+    hsl(204, 88%, 19%)
+  );
   --gradient-hero: linear-gradient(
     135deg,
     hsl(204 94% 62%) 0%,
@@ -128,6 +133,11 @@
     hsl(204 94% 62%),
     hsl(204 94% 50%)
   );
+  --gradient-nav: linear-gradient(
+    135deg,
+    hsl(207, 91%, 23%),
+    hsl(204, 75%, 13%)
+  );
   --gradient-hero: linear-gradient(
     135deg,
     hsl(204 94% 52%) 0%,
@@ -170,5 +180,99 @@
   
   .shadow-card {
     box-shadow: var(--shadow-card);
+  }
+
+  .dock-outer {
+    margin: 0 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    /* max-width: 100%; */
+  }
+  
+  .dock-panel-bottom {
+    position: fixed; /* stay at bottom */
+    /* bottom: 0; */
+    /* left: 50%;
+    transform: translateX(-50%); */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    max-height: min-content;
+    /* gap: 2rem; */
+    border-radius: 1rem;
+    background: var(--color-background);
+    /* background-color: #060010; */
+    /* border: 1px solid #222; */
+    padding: 0 0.5rem 0.5rem;
+    z-index: 50;
+  }
+
+  .dock-panel-top {
+    transform: translateY(15px);
+    max-height: 60px;
+    position: fixed;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+    width: 50%;
+    border-radius: 0.5rem;
+    background: none;
+    /* background: var(--color-background); */
+    padding: 0 0.5rem 0.5rem;
+    /* box-shadow: 0 5px 5px -2px rgba(0, 0, 0, 0.4); */
+    z-index: 50;
+  }
+  
+  .dock-item {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background-color: var(--secondary);
+    /* border: 1px solid #222; */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3),
+      0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.2s ease;
+    max-height: 80%;
+  }
+  
+  .dock-item.dock-active {
+    background-color: #d5deff;
+    border-color: #444;
+    transform: translateY(-5px); /* pop effect */
+  }
+  
+  .dock-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .dock-label {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: fit-content;
+    white-space: pre;
+    border-radius: 0.375rem;
+    border: 1px solid #222;
+    background-color: #060010;
+    padding: 0.125rem 0.5rem;
+    font-size: 0.75rem;
+    color: #fff;
+    transform: translateX(-50%);
+  }
+  
+  .dock-bottom {
+    bottom: 0;
+  }
+  
+  .dock-top {
+    top: 0;
   }
 }
