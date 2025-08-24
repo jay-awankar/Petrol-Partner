@@ -1,25 +1,37 @@
-import React from 'react'
+"use client";
 
-const page = () => {
+import { useAuth } from "@clerk/nextjs";
+import { redirect, useRouter } from "next/navigation";
+import { useEffect } from "react";
+
+import DashboardStats from "@/components/DashboardStats";
+// import ActiveRide from "@/components/ActiveRide";
+// import SearchAndAction from "@/components/SearchAndAction";
+
+const Page = () => {
+  const { isLoaded, isSignedIn, userId } = useAuth();
+  const router = useRouter();
+
+  if (!userId) {
+    redirect("/");
+  }
+
+  useEffect(() => {
+    if (isLoaded && !isSignedIn) {
+      router.replace("/"); // home page
+    } else {
+      // Sync user with Supabase
+      fetch("/api/sync-user", { method: "POST" }).catch(console.error);
+    }
+  }, [isLoaded, isSignedIn, router]);
+
   return (
-    <div className=' items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-blue-100'>
-        <div className='text-3xl font-bold text-gray-800'>
-             11 Welcome to the Dashboard!
-        </div>
-        {/* You can add more content here */}
-        <div className='mt-4 text-gray-600'>
-            This is a placeholder for your dashboard content.
-        </div>
-        <div className='mt-8'></div>
-        <div className='text-3xl font-bold text-gray-800'>
-             22 Welcome to the Dashboard!
-        </div>
-        {/* You can add more content here */}
-        <div className='mt-4 text-gray-600'>
-            This is a placeholder for your dashboard content.
-        </div>
+    <div className="px-3 md:px-26 py-5 space-y-2 items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-blue-100">
+      <DashboardStats />
+      {/* <SearchAndAction />
+      <ActiveRide /> */}
     </div>
-  )
-}
+  );
+};
 
-export default page
+export default Page;

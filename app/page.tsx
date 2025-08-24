@@ -8,12 +8,15 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 export default function LandingPage() {
 
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, userId } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (isSignedIn) router.replace("/dashboard");
-  }, [isSignedIn, router]);
+    if (!isSignedIn && !userId) router.replace("/");
+    else {
+      router.replace("/dashboard");
+    }
+  }, [isSignedIn, userId, router]);
 
   return (
     <main>

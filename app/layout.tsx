@@ -5,12 +5,12 @@ import { ClerkProvider } from "@clerk/nextjs";
 import Navbar from "@/components/Navbar";
 
 const poppins = Poppins({
-  subsets: ["latin"],   // add more if needed
+  subsets: ["latin"], // add more if needed
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"], // all weights
   style: ["normal", "italic"], // supports both
-  display: "swap",  // improves performance
+  display: "swap", // improves performance
   variable: "--font-poppins", // creates a CSS variable
-})
+});
 
 export const metadata: Metadata = {
   title: "Petrol Partner",
@@ -23,15 +23,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider>
-      <html lang="en">
-        <body
-          className={`${poppins.variable} font-sans antialiased min-h-screen bg-gradient-to-b from-blue-50 to-blue-100`}
-          >
+    <html lang="en" className={`${poppins.variable} font-sans antialiased`}>
+      <ClerkProvider>
+        <body>
           <Navbar />
           {children}
         </body>
-      </html>
-    </ClerkProvider>
+      </ClerkProvider>
+    </html>
   );
 }

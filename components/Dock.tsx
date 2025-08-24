@@ -88,7 +88,7 @@ function DockItem({
         // subtle pop + lift when active
         scale: active ? 1.15 : 1,
         // lift up or down
-        y: position === "bottom" ? (active ? -5: 0): (active ? 10 : 0),
+        y: position === "bottom" ? (active ? -5: 0): (active ? 5 : 0),
       }}
       onHoverStart={() => isHovered.set(1)}
       onHoverEnd={() => isHovered.set(0)}

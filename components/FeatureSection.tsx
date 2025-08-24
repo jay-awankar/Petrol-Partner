@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card"
 
 const FeatureSection = () => {
   return (
-    <section className="py-20 bg-background">
+    <section className="px-3 md:px-20 py-20 bg-background">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl font-bold text-foreground mb-4">
