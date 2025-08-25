@@ -25,7 +25,7 @@ const ActiveRide = () => {
     return <p className="text-sm text-muted-foreground">Loading your rides...</p>;
   }
 
-  // Passenger bookings (confirmed or pending where ride is active)
+  // Passenger bookings
   const activePassengerBooking = bookedRides
     ?.filter(
       (b) =>
@@ -34,11 +34,11 @@ const ActiveRide = () => {
     )
     .sort(
       (a, b) =>
-        new Date(a.ride.departure_time).getTime() -
-        new Date(b.ride.departure_time).getTime()
+        new Date(a.ride?.departure_time || 0).getTime() -
+        new Date(b.ride?.departure_time || 0).getTime()
     )[0];
 
-  // Driver rides (offered rides)
+  // Driver rides
   const driverActiveRide = rides
     ?.filter((r) => r.driver_id === userId && r.status === "active")
     .sort(
@@ -47,28 +47,25 @@ const ActiveRide = () => {
         new Date(b.departure_time).getTime()
     )[0];
 
-  // Requested rides (pending requests)
+  // Requested rides
   const pendingRequest = rideRequests
-    ?.filter((req) => req.status === "pending")
+    ?.filter((req) => req.status === "pending" && req.ride)
     .sort(
       (a, b) =>
-        new Date(a.ride.departure_time).getTime() -
-        new Date(b.ride.departure_time).getTime()
+        new Date(a.ride?.departure_time || 0).getTime() -
+        new Date(b.ride?.departure_time || 0).getTime()
     )[0];
 
-  // Decide which ride to show as "active"
-  const activeRide = activePassengerBooking
-    ? activePassengerBooking.ride
-    : driverActiveRide
-    ? driverActiveRide
-    : pendingRequest
-    ? pendingRequest.ride
-    : null;
+  // Decide active ride
+  const activeRide = activePassengerBooking?.ride
+    ?? driverActiveRide
+    ?? pendingRequest?.ride
+    ?? null;
 
   const isDriverForActiveRide = !!activeRide && userId === activeRide.driver_id;
 
   return (
-    <Card className="hover:shadow-soft transition-all duration-300">
+    <Card className="hover:shadow-soft transition-all duration-300 py-5">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <span>Your Active Ride</span>
@@ -94,15 +91,16 @@ const ActiveRide = () => {
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Clock className="w-4 h-4" />
                 <span>
-                  {format(new Date(activeRide.departure_time), "MMM d, h:mm a")}
+                  {activeRide.departure_time
+                    ? format(new Date(activeRide.departure_time), "MMM d, h:mm a")
+                    : "No departure time"}
                 </span>
-                {!isDriverForActiveRide &&
-                  activeRide.driver?.full_name && (
-                    <>
-                      <span>•</span>
-                      <span>Driver: {activeRide.driver.full_name}</span>
-                    </>
-                  )}
+                {!isDriverForActiveRide && activeRide.driver?.full_name && (
+                  <>
+                    <span>•</span>
+                    <span>Driver: {activeRide.driver.full_name}</span>
+                  </>
+                )}
               </div>
             </div>
             <div className="flex gap-2">

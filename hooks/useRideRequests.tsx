@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase/client";
+import { supabaseClient } from "@/lib/supabase/client";
 import { useUser } from "@clerk/nextjs";
 
 export interface Ride {
@@ -65,7 +65,7 @@ export function useRideRequests() {
     try {
       setLoading(true);
 
-      const { data: requestsData, error: requestsError } = await supabase
+      const { data: requestsData, error: requestsError } = await supabaseClient
         .from("ride_requests")
         .select(`
             *,
@@ -94,7 +94,7 @@ export function useRideRequests() {
         ...new Set(requestsData.map((request) => request.passenger_id)),
       ];
 
-      const { data: profilesData, error: profilesError } = await supabase
+      const { data: profilesData, error: profilesError } = await supabaseClient
         .from("profiles")
         .select("user_id, full_name, avatar_url, rating, college")
         .in("user_id", passengerIds);
@@ -124,27 +124,36 @@ export function useRideRequests() {
       toast.error("Please sign in to accept a ride response");
       return { error: new Error("User not authenticated") };
     }
-
+  
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+  
+    if (!profile) {
+      toast.error("Profile not found");
+      return { error: new Error("Profile not found") };
+    }
+  
     try {
-      const { error: updateError } = await supabase
+      const { error: updateError } = await supabaseClient
         .from("ride_requests")
         .update({ status: "booked" })
         .eq("id", rideRequestId)
-        .eq("passenger_id", user.id);
-
+        .eq("passenger_id", profile.id); // ✅ use profile.id
+  
       if (updateError) throw updateError;
-
-      const { error: responseError } = await supabase
+  
+      const { error: responseError } = await supabaseClient
         .from("ride_request_responses")
         .update({ status: "accepted" })
         .eq("id", responseId);
-
+  
       if (responseError) throw responseError;
-
-      toast.success(
-        "Ride response accepted! The driver will contact you soon."
-      );
-
+  
+      toast.success("Ride response accepted! The driver will contact you soon.");
+  
       await fetchRideRequests();
       return { error: null };
     } catch (error: any) {
@@ -152,29 +161,41 @@ export function useRideRequests() {
       return { error };
     }
   };
+  
 
   const createRideRequest = async (requestData: CreateRideRequestData) => {
     if (!user) {
       toast.error("Please sign in to create a ride request");
       return { error: new Error("User not authenticated") };
     }
-
+  
+    const { data: profile } = await supabaseClient
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .single();
+  
+    if (!profile) {
+      toast.error("Profile not found");
+      return { error: new Error("Profile not found") };
+    }
+  
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("ride_requests")
         .insert([
           {
             ...requestData,
-            passenger_id: user.id,
+            passenger_id: profile.id, // ✅ use profile.id
           },
         ])
         .select()
         .single();
-
+  
       if (error) throw error;
-
+  
       toast.success("Ride request created successfully!");
-
+  
       await fetchRideRequests();
       return { data, error: null };
     } catch (error: any) {
@@ -182,6 +203,7 @@ export function useRideRequests() {
       return { error };
     }
   };
+  
 
   useEffect(() => {
     fetchRideRequests();

@@ -12,7 +12,6 @@ import {
   Children,
   cloneElement,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from "react";
@@ -86,9 +85,9 @@ function DockItem({
         width: size,
         height: size,
         // subtle pop + lift when active
-        scale: active ? 1.15 : 1,
+        scale: active ? 1 : 1,
         // lift up or down
-        y: position === "bottom" ? (active ? -5: 0): (active ? 5 : 0),
+        // y: position === "bottom" ? (active ? -5: 0): (active ? 5 : 0),
       }}
       onHoverStart={() => isHovered.set(1)}
       onHoverEnd={() => isHovered.set(0)}
@@ -141,7 +140,7 @@ function DockLabel({ children, className = "", ...rest }: any) {
   );
 }
 
-function DockIcon({ children, className = "" }) {
+function DockIcon({ children, className = "w-4 h-4" }) {
   return <div className={["dock-icon", className].join(" ")}>{children}</div>;
 }
 
@@ -152,7 +151,6 @@ export default function Dock({
   magnification = 70,
   distance = 200,
   panelHeight = 68,
-  dockHeight = 256,
   baseItemSize = 50,
   position = "bottom",
 }: DockProps) {
@@ -160,13 +158,6 @@ export default function Dock({
   const isHovered = useMotionValue(0);
   const pathname = usePathname();
   const router = useRouter();
-
-  // const maxHeight = useMemo(
-  //   () => Math.max(dockHeight, magnification + magnification / 2 + 4),
-  //   [magnification, dockHeight]
-  // );
-  // const heightRow = useTransform(isHovered, [0, 1], [panelHeight, maxHeight]);
-  // const height = useSpring(heightRow, spring);
 
   return (
     <motion.div  className="dock-outer">

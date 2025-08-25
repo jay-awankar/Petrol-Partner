@@ -1,10 +1,11 @@
 "use client";
 
-import { supabase } from "@/lib/supabase/client";
+import { supabaseClient } from "@/lib/supabase/client";
 import { useAuth, useUser } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import { toast } from "sonner";
 
+// ✅ Correct Ride type
 type Ride = {
   id: string;
   origin: string;
@@ -14,14 +15,16 @@ type Ride = {
   status: string;
   driver_id: string;
   driver?: {
-    user_id: string;
+    id: string;  // changed from user_id
     full_name: string;
+    email?: string;
     avatar_url?: string;
     rating?: number;
     college?: string;
   };
   bookings?: { seats_booked: number }[];
 };
+
 
 type CreateRideData = {
   origin: string;
@@ -42,7 +45,7 @@ export function useRides() {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from("rides")
         .select(
           `
@@ -86,30 +89,40 @@ export function useRides() {
       toast.error("Please sign in to create a ride");
       return { error: new Error("User not authenticated") };
     }
-
+  
     try {
-      const { data, error } = await supabase
+      // ✅ fetch profile row for this Clerk user
+      const { data: profile, error: profileError } = await supabaseClient
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)   // Clerk user_id stored in profiles
+        .single();
+  
+      if (profileError || !profile) throw new Error("Profile not found");
+  
+      const { data, error } = await supabaseClient
         .from("rides")
         .insert([
           {
             ...rideData,
-            driver_id: user.id, // Clerk user id
+            driver_id: profile.id, // ✅ use profile.id
           },
         ])
         .select()
         .single();
-
+  
       if (error) throw error;
-
+  
       toast.success("Ride created successfully!");
       await fetchRides();
-
+  
       return { data, error: null };
     } catch (error: any) {
       toast.error(`Failed to create ride: ${error.message}`);
       return { error };
     }
   };
+  
 
   // Book a ride
   const bookRide = async (rideId: string, seats: number) => {
@@ -117,31 +130,40 @@ export function useRides() {
       toast.error("Please sign in to book a ride");
       return { error: new Error("User not authenticated") };
     }
-
+  
     try {
-      const { data, error } = await supabase
+      const { data: profile, error: profileError } = await supabaseClient
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+  
+      if (profileError || !profile) throw new Error("Profile not found");
+  
+      const { data, error } = await supabaseClient
         .from("bookings")
         .insert([
           {
             ride_id: rideId,
-            user_id: user.id,
+            user_id: profile.id, // ✅ profile.id not Clerk user.id
             seats_booked: seats,
           },
         ])
         .select()
         .single();
-
+  
       if (error) throw error;
-
+  
       toast.success("Ride booked successfully!");
       await fetchRides();
-
+  
       return { data, error: null };
     } catch (error: any) {
       toast.error(`Failed to book ride: ${error.message}`);
       return { error };
     }
   };
+  
 
   // Complete a ride
   const completeRide = async (rideId: string) => {
@@ -151,7 +173,7 @@ export function useRides() {
     }
 
     try {
-      const { error } = await supabase
+      const { error } = await supabaseClient
         .from("rides")
         .update({ status: "completed" })
         .eq("id", rideId)

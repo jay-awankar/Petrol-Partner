@@ -5,8 +5,8 @@ import { redirect, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
 import DashboardStats from "@/components/DashboardStats";
-// import ActiveRide from "@/components/ActiveRide";
-// import SearchAndAction from "@/components/SearchAndAction";
+import ActiveRide from "@/components/ActiveRide";
+import SearchAndAction from "@/components/SearchAndAction";
 
 const Page = () => {
   const { isLoaded, isSignedIn, userId } = useAuth();
@@ -26,10 +26,10 @@ const Page = () => {
   }, [isLoaded, isSignedIn, router]);
 
   return (
-    <div className="px-3 md:px-26 py-5 space-y-2 items-center justify-center min-h-screen bg-gradient-to-b from-blue-50 to-blue-100">
+    <div className="page min-h-screen bg-background container mx-auto p-4 space-y-6">
       <DashboardStats />
-      {/* <SearchAndAction />
-      <ActiveRide /> */}
+      <SearchAndAction />
+      <ActiveRide />
     </div>
   );
 };

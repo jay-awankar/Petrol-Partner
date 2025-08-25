@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 export default function LandingPage() {
 
-  const { isSignedIn, userId } = useAuth();
+  const { isSignedIn, userId, isLoaded } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -17,6 +17,8 @@ export default function LandingPage() {
       router.replace("/dashboard");
     }
   }, [isSignedIn, userId, router]);
+
+  if (!isLoaded) return null;
 
   return (
     <main>

@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase/client';
+import { supabaseClient } from '@/lib/supabase/client';
 import { useAuth } from '@clerk/nextjs';
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner'; // ✅ using sonner instead of use-toast
@@ -45,35 +45,36 @@ export const useBookedRides = () => {
     try {
       setLoading(true);
 
-      const { data, error } = await supabase
-        .from('bookings')
-        .select(`
-          id,
-          ride_id,
-          passenger_id,
-          seats_booked,
-          total_amount,
-          status,
-          created_at,
-          ride:rides (
-            id,
-            driver_id,
-            from_location,
-            to_location,
-            departure_time,
-            status,
-            price_per_seat,
-            description,
-            driver:profiles!rides_driver_id_fkey (
-              user_id,
-              full_name,
-              rating,
-              college
-            )
-          )
-        `)
-        .eq('passenger_id', user.id)
-        .order('created_at', { ascending: false });
+      const { data, error } = await supabaseClient
+  .from('bookings')
+  .select(`
+    id,
+    ride_id,
+    passenger_id,
+    seats_booked,
+    total_amount,
+    status,
+    created_at,
+    ride:rides (
+      id,
+      driver_id,
+      from_location,
+      to_location,
+      departure_time,
+      status,
+      price_per_seat,
+      description,
+      driver:profiles!rides_driver_id_fkey (
+        id,
+        full_name,
+        rating,
+        college
+      )
+    )
+  `)
+  .eq('passenger_id', user.id) // 👈 must match how you store Clerk ID in profiles/bookings
+  .order('created_at', { ascending: false });
+
 
       if (error) {
         console.error('Error fetching booked rides:', error);
@@ -95,7 +96,7 @@ export const useBookedRides = () => {
     if (!user) return false;
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('ratings')
         .select('id')
         .eq('ride_id', rideId)
@@ -120,19 +121,18 @@ export const useBookedRides = () => {
     if (!user) return [];
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await supabaseClient
         .from('bookings')
         .select(`
           *,
           ride:rides!bookings_ride_id_fkey (
             *,
             driver:profiles!rides_driver_id_fkey (
-              user_id,
-              full_name,
-              avatar_url,
-              rating,
-              college
-            )
+  id,
+  full_name,
+  rating,
+  college
+)
           )
         `)
         .eq('passenger_id', user.id)

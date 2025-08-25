@@ -6,6 +6,7 @@ interface DashboardStats {
   dailyRides: number;
   totalActiveRides: number;
   totalRideRequests: number;
+  totalRevenue: number;
 }
 
 export const useDashboardStats = () => {
@@ -15,6 +16,7 @@ export const useDashboardStats = () => {
     dailyRides: 0,
     totalActiveRides: 0,
     totalRideRequests: 0,
+    totalRevenue: 0,
   });
   const [loading, setLoading] = useState(true);
 

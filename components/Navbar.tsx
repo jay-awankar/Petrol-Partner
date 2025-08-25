@@ -10,6 +10,7 @@ import {
   SignUpButton,
   UserButton,
 } from "@clerk/nextjs";
+import Image from "next/image";
 
 export default function Navbar() {
   const items = [
@@ -24,9 +25,18 @@ export default function Navbar() {
     <>
       {/* Mobile Navbar */}
       <SignedIn>
-        <header className="flex md:hidden fixed top-0 left-0 w-full h-15 px-6 items-center justify-between bg-background shadow-md z-50">
+        <header className="navbar bg-white flex md:hidden px-6 justify-between shadow-md">
           <Link href="/" className="flex items-center gap-2">
-            <span className="font-bold text-lg">Petrol Partner</span>
+            <Image
+              src="/icons/logo.png"
+              alt="Logo"
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
+            <span className="text-xl font-bold text-primary">
+              Petrol Partner
+            </span>
           </Link>
           <div>
             <SignedOut>
@@ -48,27 +58,32 @@ export default function Navbar() {
 
       {/* Desktop Navbar */}
       <SignedIn>
-        <nav className="hidden md:flex sticky top-0 left-0 w-full h-18 px-12 items-center justify-between navbar shadow-md z-50">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="font-bold text-lg">Petrol Partner</span>
-          </Link>
-
-          <div className="flex-1 flex justify-center">
-            <div className="w-1/2 flex justify-center">
-              <Dock items={items} position="top" />
+        <nav className="navbar hidden md:block bg-white border-b border-border shadow-md">
+          <div className="container mx-auto flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-2">
+              <Image
+              src="/icons/logo.png"
+              alt="Logo"
+              width={40}
+              height={40}
+              className="rounded-full"
+            />
+              <span className="text-2xl font-extrabold text-primary">
+                Petrol Partner
+              </span>
+            </Link>
+            <div className="flex items-center space-x-3">
+            <Dock items={items} position="top" />
+              <SignedOut>
+                <SignInButton />
+                <SignUpButton>
+                  <button className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 cursor-pointer">
+                    Sign Up
+                  </button>
+                </SignUpButton>
+              </SignedOut>
+              <UserButton afterSignOutUrl="/" />
             </div>
-          </div>
-
-          <div>
-            <SignedOut>
-              <SignInButton />
-              <SignUpButton>
-                <button className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 cursor-pointer">
-                  Sign Up
-                </button>
-              </SignUpButton>
-            </SignedOut>
-            <UserButton />
           </div>
         </nav>
       </SignedIn>
