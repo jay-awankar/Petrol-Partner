@@ -7,6 +7,8 @@ import { useEffect } from "react";
 import DashboardStats from "@/components/DashboardStats";
 import ActiveRide from "@/components/ActiveRide";
 import SearchAndAction from "@/components/SearchAndAction";
+import MapComponent from "@/components/Map";
+import RidesAndRequests from "@/components/RidesAndRequests";
 
 const Page = () => {
   const { isLoaded, isSignedIn, userId } = useAuth();
@@ -30,6 +32,8 @@ const Page = () => {
       <DashboardStats />
       <SearchAndAction />
       <ActiveRide />
+      <MapComponent className="h-64" />
+      <RidesAndRequests />
     </div>
   );
 };

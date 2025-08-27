@@ -1,192 +1,192 @@
-"use client";
+import { useState, useEffect } from 'react';
+import { supabaseClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
+import { useUser } from '@clerk/nextjs';
 
-import { supabaseClient } from "@/lib/supabase/client";
-import { useAuth, useUser } from "@clerk/nextjs";
-import { useState, useEffect } from "react";
-import { toast } from "sonner";
-
-// ✅ Correct Ride type
-type Ride = {
+export interface Ride {
   id: string;
-  origin: string;
-  destination: string;
-  departure_time: string;
-  available_seats: number;
-  status: string;
   driver_id: string;
-  driver?: {
-    id: string;  // changed from user_id
-    full_name: string;
-    email?: string;
-    avatar_url?: string;
-    rating?: number;
-    college?: string;
-  };
-  bookings?: { seats_booked: number }[];
-};
-
-
-type CreateRideData = {
-  origin: string;
-  destination: string;
+  from_location: string;
+  to_location: string;
   departure_time: string;
   available_seats: number;
-};
+  price_per_seat: number;
+  description?: string;
+  status: 'active' | 'completed' | 'cancelled';
+  created_at: string;
+  updated_at: string;
+  driver?: {
+    user_id: string;
+    full_name: string;
+    avatar_url?: string;
+    rating: number;
+    college: string;
+  };
+}
+
+export interface CreateRideData {
+  from_location: string;
+  to_location: string;
+  departure_time: string;
+  available_seats: number;
+  price_per_seat: number;
+  description?: string;
+}
 
 export function useRides() {
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
+  const { user } = useUser();
 
-  const { isSignedIn } = useAuth();
-  const { user } = useUser(); // ✅ full Clerk user object
-
-  // Fetch available rides
   const fetchRides = async () => {
     try {
       setLoading(true);
-
       const { data, error } = await supabaseClient
-        .from("rides")
-        .select(
-          `
-    *,
-    driver:profiles!rides_driver_id_fkey(
-      id,
-      full_name,
-      email,
-      avatar_url
-    ),
-    bookings(seats_booked)
-  `
-        )
-        .eq("status", "active")
-        .order("departure_time", { ascending: true });
+        .from('rides')
+        .select(`
+          *,
+          driver:profiles!rides_driver_id_fkey (
+            user_id,
+            full_name,
+            avatar_url,
+            rating,
+            college
+          ),
+          bookings (
+            seats_booked
+          )
+        `)
+        .eq('status', 'active')
+        .order('departure_time', { ascending: true });
 
       if (error) throw error;
-
-      // Filter rides where seats are still available
-      const availableRides = (data || []).filter((ride) => {
-        const totalBookedSeats =
-          ride.bookings?.reduce(
-            (sum: number, booking: any) => sum + booking.seats_booked,
-            0
-          ) || 0;
-
+      
+      const availableRides = (data || []).filter(ride => {
+        const totalBookedSeats = ride.bookings?.reduce(
+          (sum: number, booking: any) => sum + booking.seats_booked, 0
+        ) || 0;
         return totalBookedSeats < ride.available_seats;
       });
-
+      
       setRides(availableRides as Ride[]);
     } catch (error: any) {
-      toast.error(`Error fetching rides: ${error.message}`);
+      toast.error("Error fetching rides", {
+        description: error.message,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // Create a ride
   const createRide = async (rideData: CreateRideData) => {
-    if (!isSignedIn || !user) {
-      toast.error("Please sign in to create a ride");
+    if (!user) {
+      toast.error("Authentication required", {
+        description: "Please sign in to create a ride",
+      });
       return { error: new Error("User not authenticated") };
     }
-  
+
     try {
-      // ✅ fetch profile row for this Clerk user
-      const { data: profile, error: profileError } = await supabaseClient
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user.id)   // Clerk user_id stored in profiles
-        .single();
-  
-      if (profileError || !profile) throw new Error("Profile not found");
-  
       const { data, error } = await supabaseClient
-        .from("rides")
+        .from('rides')
         .insert([
-          {
-            ...rideData,
-            driver_id: profile.id, // ✅ use profile.id
-          },
+          { ...rideData, driver_id: user.id }
         ])
         .select()
         .single();
-  
+
       if (error) throw error;
-  
-      toast.success("Ride created successfully!");
+
+      toast.success("Ride created successfully!", {
+        description: "Your ride is now available for booking",
+      });
+
       await fetchRides();
-  
       return { data, error: null };
     } catch (error: any) {
-      toast.error(`Failed to create ride: ${error.message}`);
+      toast.error("Failed to create ride", {
+        description: error.message,
+      });
       return { error };
     }
   };
-  
 
-  // Book a ride
-  const bookRide = async (rideId: string, seats: number) => {
-    if (!isSignedIn || !user) {
-      toast.error("Please sign in to book a ride");
+  const bookRide = async (rideId: string, seatsBooked: number) => {
+    if (!user) {
+      toast.error("Authentication required", {
+        description: "Please sign in to book a ride",
+      });
       return { error: new Error("User not authenticated") };
     }
-  
+
     try {
-      const { data: profile, error: profileError } = await supabaseClient
-        .from("profiles")
-        .select("id")
-        .eq("user_id", user.id)
+      const { data: ride, error: rideError } = await supabaseClient
+        .from('rides')
+        .select('*, driver:profiles!rides_driver_id_fkey(full_name)')
+        .eq('id', rideId)
         .single();
-  
-      if (profileError || !profile) throw new Error("Profile not found");
-  
+
+      if (rideError) throw rideError;
+
+      const totalAmount = ride.price_per_seat * seatsBooked;
+
       const { data, error } = await supabaseClient
-        .from("bookings")
+        .from('bookings')
         .insert([
           {
             ride_id: rideId,
-            user_id: profile.id, // ✅ profile.id not Clerk user.id
-            seats_booked: seats,
-          },
+            passenger_id: user.id,
+            seats_booked: seatsBooked,
+            total_amount: totalAmount,
+            status: 'pending'
+          }
         ])
         .select()
         .single();
-  
+
       if (error) throw error;
-  
-      toast.success("Ride booked successfully!");
+
+      toast.success("Ride booked successfully!", {
+        description: `You've booked ${seatsBooked} seat(s) for ₹${totalAmount}`,
+      });
+
       await fetchRides();
-  
       return { data, error: null };
     } catch (error: any) {
-      toast.error(`Failed to book ride: ${error.message}`);
+      toast.error("Failed to book ride", {
+        description: error.message,
+      });
       return { error };
     }
   };
-  
 
-  // Complete a ride
   const completeRide = async (rideId: string) => {
-    if (!isSignedIn || !user) {
-      toast.error("Please sign in to complete a ride");
+    if (!user) {
+      toast.error("Authentication required", {
+        description: "Please sign in to complete a ride",
+      });
       return { error: new Error("User not authenticated") };
     }
 
     try {
       const { error } = await supabaseClient
-        .from("rides")
-        .update({ status: "completed" })
-        .eq("id", rideId)
-        .eq("driver_id", user.id); // only driver can complete
+        .from('rides')
+        .update({ status: 'completed' })
+        .eq('id', rideId)
+        .eq('driver_id', user.id);
 
       if (error) throw error;
 
-      toast.success("Ride marked as completed!");
-      await fetchRides();
+      toast.success("Ride completed successfully!", {
+        description: "Passengers can now rate your service",
+      });
 
+      await fetchRides();
       return { error: null };
     } catch (error: any) {
-      toast.error(`Failed to complete ride: ${error.message}`);
+      toast.error("Failed to complete ride", {
+        description: error.message,
+      });
       return { error };
     }
   };
@@ -195,5 +195,12 @@ export function useRides() {
     fetchRides();
   }, []);
 
-  return { rides, loading, fetchRides, createRide, bookRide, completeRide };
+  return {
+    rides,
+    loading,
+    fetchRides,
+    createRide,
+    bookRide,
+    completeRide
+  };
 }

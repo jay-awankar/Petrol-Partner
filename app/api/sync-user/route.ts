@@ -1,19 +1,23 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { supabaseAdmin } from "@/lib/supabase/admin";
 
 export async function POST() {
   try {
     const user = await currentUser();
-    if (!user) return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    if (!user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+    }
 
-    const supabase = await createSupabaseServerClient();
-
-    const { error } = await supabase.from("profiles").upsert({
-      clerk_id: user.id, // Clerk user ID
-      email: user.emailAddresses[0]?.emailAddress || null,
-      full_name: user.fullName || null,
-      created_at: new Date().toISOString(),
-    });
+    const { error } = await supabaseAdmin.from("profiles").upsert(
+      {
+        clerk_id: user.id,
+        email: user.emailAddresses[0]?.emailAddress || null,
+        full_name: user.fullName || null,
+        avatar_url: user.imageUrl || null,
+        created_at: new Date().toISOString(),
+      },
+      { onConflict: "clerk_id" } // ensures no duplicate inserts
+    );
 
     if (error) {
       console.error("Supabase upsert error:", error);
