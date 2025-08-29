@@ -1,31 +1,22 @@
-import { cookies } from "next/headers";
-import { createServerClient, type CookieOptions } from "@supabase/ssr";
+import { createClient } from "@supabase/supabase-js";
+import { auth } from "@clerk/nextjs/server";
 
-export async function createSupabaseServerClient() {
-  const cookieStore = await cookies();
+export const createSupabaseServerClient = async () => {
+  const { getToken } = await auth();
 
-  return createServerClient(
+  const token = await getToken({ template: "supabase" });
+
+  if (!token) throw new Error("No Clerk JWT found");
+
+  return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll().map((cookie) => ({
-            name: cookie.name,
-            value: cookie.value,
-          }));
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options as CookieOptions);
-            });
-          } catch (err) {
-            // Ignore "headers already sent" errors
-            console.warn("Error setting cookies:", err);
-          }
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
       },
     }
   );
-}
+};

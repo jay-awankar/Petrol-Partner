@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { auth } from "@clerk/nextjs/server";
 
 export async function GET() {
   try {
-    // Clerk auth (synchronous)
+
     const session = await auth();
     const userId = session.userId
 
@@ -14,62 +14,72 @@ export async function GET() {
 
     const supabase = await createSupabaseServerClient();
 
-    // ----------------------
-    // Dashboard Stats Queries
-    // ----------------------
-
-    // Total registered users
-    const { count: totalUsers, data: TotalUsersData } = await supabase
+    // ✅ Total registered users
+    const { count: totalUsers, error: usersErr } = await supabase
       .from("profiles")
       .select("*", { count: "exact", head: true });
-      console.log("Total Users:", totalUsers, TotalUsersData);
+    if (usersErr) {
+      console.error("profiles count error:", usersErr);
+      throw usersErr;
+    }
 
-    // Total booked rides
-    const { count: totalBookedRides } = await supabase
+    // ✅ Total booked rides
+    const { count: totalBookedRides, error: bookedErr } = await supabase
       .from("bookings")
       .select("*", { count: "exact", head: true });
-      console.log("Total Booked Rides:", totalBookedRides);
+    if (bookedErr) {
+      console.error("bookings count error:", bookedErr);
+      throw bookedErr;
+    }
 
-    // Daily rides (rides created today)
+    // ✅ Daily rides
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const { count: dailyRides } = await supabase
+    const { count: dailyRides, error: dailyErr } = await supabase
       .from("rides")
       .select("*", { count: "exact", head: true })
       .gte("created_at", today.toISOString());
-      console.log("Daily Rides:", dailyRides);
+    if (dailyErr) {
+      console.error("rides daily count error:", dailyErr);
+      throw dailyErr;
+    }
 
-    // Total active rides
-    const { count: totalActiveRides } = await supabase
+    // ✅ Active rides
+    const { count: totalActiveRides, error: activeErr } = await supabase
       .from("rides")
       .select("*", { count: "exact", head: true })
       .eq("status", "active");
-      console.log("Total Active Rides:", totalActiveRides);
+    if (activeErr) {
+      console.error("rides active count error:", activeErr);
+      throw activeErr;
+    }
 
-    // Total active ride requests
-    const { count: totalRideRequests } = await supabase
+    // ✅ Ride requests
+    const { count: totalRideRequests, error: reqErr } = await supabase
       .from("ride_requests")
       .select("*", { count: "exact", head: true })
-      .eq("status", "active");
-      console.log("Total Ride Requests:", totalRideRequests);
+      .eq("status", "pending");
+    if (reqErr) {
+      console.error("ride_requests count error:", reqErr);
+      throw reqErr;
+    }
 
-    // Total revenue from confirmed bookings
-    const { data: revenueData, error: revenueError } = await supabase
+    // ✅ Revenue
+    const { data: revenueData, error: revenueErr } = await supabase
       .from("bookings")
       .select("total_price")
       .eq("status", "confirmed");
+    if (revenueErr) {
+      console.error("revenue error:", revenueErr);
+      throw revenueErr;
+    }
 
-    if (revenueError) throw revenueError;
+    const totalRevenue = (revenueData ?? []).reduce(
+      (sum, b: { total_price: number | string }) =>
+        sum + (Number(b.total_price) || 0),
+      0
+    );
 
-    const totalRevenue =
-      revenueData?.reduce(
-        (sum, booking) => sum + (Number(booking.total_price) || 0),
-        0
-      ) || 0;
-
-    // ----------------------
-    // Return all stats
-    // ----------------------
     return NextResponse.json({
       totalUsers,
       totalBookedRides,
@@ -78,10 +88,10 @@ export async function GET() {
       totalRideRequests,
       totalRevenue,
     });
-  } catch (err) {
-    console.error("Stats API Error:", err);
+  } catch (err: any) {
+    console.error("Stats API Fatal Error:", err);
     return NextResponse.json(
-      { error: "Internal Server Error" },
+      { error: err?.message || "Internal Server Error" },
       { status: 500 }
     );
   }

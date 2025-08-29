@@ -1,7 +1,7 @@
-import { supabaseClient } from '@/lib/supabase/client';
-import { useAuth } from '@clerk/nextjs';
-import { useState, useEffect } from 'react';
-import { toast } from 'sonner'; // ✅ using sonner instead of use-toast
+import { supabaseClient } from "@/lib/supabase/client";
+import { useAuth } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
+import { toast } from "sonner"; // ✅ using sonner instead of use-toast
 
 interface BookedRide {
   id: string;
@@ -21,10 +21,11 @@ interface BookedRide {
     description?: string;
     status: string;
     driver: {
-      user_id: string;
+      id: string;
       full_name: string;
       rating: number;
       college: string;
+      phone: string;
     };
   };
 }
@@ -46,8 +47,9 @@ export const useBookedRides = () => {
       setLoading(true);
 
       const { data, error } = await supabaseClient
-  .from('bookings')
-  .select(`
+        .from("bookings")
+        .select(
+          `
     id,
     ride_id,
     passenger_id,
@@ -67,24 +69,25 @@ export const useBookedRides = () => {
       driver:profiles!rides_driver_id_fkey (
         id,
         full_name,
-        rating,
-        college
+        ratings!ratings_user_id_fkey(rating)
+        college,
+        phone
       )
     )
-  `)
-  .eq('passenger_id', user.id) // 👈 must match how you store Clerk ID in profiles/bookings
-  .order('created_at', { ascending: false });
-
+  `
+        )
+        .eq("passenger_id", user.id) // 👈 must match how you store Clerk ID in profiles/bookings
+        .order("created_at", { ascending: false });
 
       if (error) {
-        console.error('Error fetching booked rides:', error);
+        console.error("Error fetching booked rides:", error);
         toast.error(`Error fetching booked rides: ${error.message}`);
         return;
       }
 
       setBookedRides(data || []);
     } catch (error: any) {
-      console.error('Error fetching booked rides:', error);
+      console.error("Error fetching booked rides:", error);
       toast.error(`Unexpected error: ${error.message}`);
     } finally {
       setLoading(false);
@@ -97,17 +100,17 @@ export const useBookedRides = () => {
 
     try {
       const { data, error } = await supabaseClient
-        .from('ratings')
-        .select('id')
-        .eq('ride_id', rideId)
-        .eq('rater_id', user.id)
-        .eq('rated_id', driverId)
+        .from("ratings")
+        .select("id")
+        .eq("ride_id", rideId)
+        .eq("rater_id", user.id)
+        .eq("rated_id", driverId)
         .single();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== "PGRST116") throw error;
       return !!data;
     } catch (error) {
-      console.error('Error checking rating:', error);
+      console.error("Error checking rating:", error);
       return false;
     }
   };
@@ -122,28 +125,37 @@ export const useBookedRides = () => {
 
     try {
       const { data, error } = await supabaseClient
-        .from('bookings')
-        .select(`
+        .from("bookings")
+        .select(
+          `
           *,
           ride:rides!bookings_ride_id_fkey (
             *,
             driver:profiles!rides_driver_id_fkey (
   id,
   full_name,
-  rating,
-  college
+  college,
+  phone,
+  ratings:ratings!ratings_user_id_fkey (
+    rating
+  )
 )
+
           )
-        `)
-        .eq('passenger_id', user.id)
-        .eq('status', 'confirmed')
-        .eq('ride.status', 'completed');
+        `
+        )
+        .eq("passenger_id", user.id)
+        .eq("status", "confirmed")
+        .eq("ride.status", "completed");
 
       if (error) throw error;
 
       const unratedRides = [];
       for (const booking of data || []) {
-        const hasRated = await checkIfRated(booking.ride.id, booking.ride.driver_id);
+        const hasRated = await checkIfRated(
+          booking.ride.id,
+          booking.ride.driver_id
+        );
         if (!hasRated) {
           unratedRides.push(booking);
         }
@@ -151,7 +163,7 @@ export const useBookedRides = () => {
 
       return unratedRides;
     } catch (error: any) {
-      console.error('Error fetching completed rides needing rating:', error);
+      console.error("Error fetching completed rides needing rating:", error);
       toast.error(`Error: ${error.message}`);
       return [];
     }

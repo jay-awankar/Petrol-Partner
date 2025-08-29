@@ -81,14 +81,6 @@ const Profile = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   if (!profile || !editedProfile) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -191,13 +183,13 @@ const Profile = () => {
         </div>
 
         {/* Details Tab */}
-        <Card>
+        <Card className='p-4'>
           <CardHeader>
             <CardTitle>Personal Information</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
+              <div className='space-y-2'>
                 <Label htmlFor="name">Full Name</Label>
                 <Input
                   id="name"
@@ -207,7 +199,7 @@ const Profile = () => {
                 />
               </div>
               
-              <div>
+              <div className='space-y-2'>
                 <Label htmlFor="college">College</Label>
                 <Input
                   id="college"
@@ -218,7 +210,7 @@ const Profile = () => {
               </div>
             </div>
             
-            <div>
+            <div className='space-y-2'>
               <Label htmlFor="email">Email</Label>
               <div className="flex items-center space-x-2">
                 <Mail className="w-4 h-4 text-muted-foreground" />
@@ -226,7 +218,7 @@ const Profile = () => {
               </div>
             </div>
             
-            <div>
+            <div className='space-y-2'>
               <Label htmlFor="phone">Phone Number</Label>
               <div className="flex items-center space-x-2">
                 <Phone className="w-4 h-4 text-muted-foreground" />
@@ -239,7 +231,7 @@ const Profile = () => {
               </div>
             </div>
             
-            <div>
+            <div className='space-y-2'>
               <Label htmlFor="bio">Bio</Label>
               <Textarea
                 id="bio"

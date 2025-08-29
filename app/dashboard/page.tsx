@@ -32,7 +32,7 @@ const Page = () => {
       <DashboardStats />
       <SearchAndAction />
       <ActiveRide />
-      <MapComponent className="h-64" />
+      {/* <MapComponent className="h-64" /> */}
       <RidesAndRequests />
     </div>
   );

@@ -1,137 +1,115 @@
-'use client';
+"use client";
 
-import { motion } from "framer-motion";
-import { Card, CardContent } from "./ui/card";
-import { Calendar, CheckCircle, DollarSign, HandHeart, TrendingUp, Users } from "lucide-react";
+import {
+  Users,
+  Calendar,
+  Activity,
+  Car,
+  DollarSign,
+  ClipboardList,
+} from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { motion } from "framer-motion";
 
 const DashboardStats = () => {
+  const { stats, loading: statsLoading } = useDashboardStats();
 
-    const { stats, loading: statsLoading } = useDashboardStats();
+  const safeValue = (val: number | undefined, isMoney = false) => {
+    if (val == null || isNaN(val)) return isMoney ? "0.00" : "0";
+    return isMoney ? val.toFixed(2) : val.toString();
+  };
+
+  const cards = [
+    {
+      label: "Total Users",
+      value: safeValue(stats?.totalUsers),
+      icon: <Users className="w-5 h-5 text-primary" />,
+      iconBg: "bg-primary/10",
+      color: "text-primary",
+    },
+    {
+      label: "Total Booked Rides",
+      value: safeValue(stats?.totalBookedRides),
+      icon: <Calendar className="w-5 h-5 text-blue-500" />,
+      iconBg: "bg-blue-500/10",
+      color: "text-blue-500",
+    },
+    {
+      label: "Daily Rides",
+      value: safeValue(stats?.dailyRides),
+      icon: <Activity className="w-5 h-5 text-orange-500" />,
+      iconBg: "bg-orange-500/10",
+      color: "text-orange-500",
+    },
+    {
+      label: "Active Rides",
+      value: safeValue(stats?.totalActiveRides),
+      icon: <Car className="w-5 h-5 text-emerald-600" />,
+      iconBg: "bg-emerald-600/10",
+      color: "text-emerald-600",
+    },
+    {
+      label: "Ride Requests",
+      value: safeValue(stats?.totalRideRequests),
+      icon: <ClipboardList className="w-5 h-5 text-purple-600" />,
+      iconBg: "bg-purple-600/10",
+      color: "text-purple-600",
+    },
+    {
+      label: "Total Revenue",
+      value: `₹${safeValue(stats?.totalRevenue, true)}`,
+      icon: <DollarSign className="w-5 h-5 text-emerald-600" />,
+      iconBg: "bg-emerald-600/10",
+      color: "text-emerald-600",
+    },
+  ];
 
   return (
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <Card className="hover:shadow-soft transition-all duration-300">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Users className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Registered Users</p>
-                    <p className="text-2xl font-bold text-primary">{statsLoading ? '...' : stats.totalUsers}</p>
-                  </div>
+    <motion.div
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+      initial="hidden"
+      animate="visible"
+      variants={{
+        hidden: { opacity: 0 },
+        visible: {
+          opacity: 1,
+          transition: { staggerChildren: 0.1 },
+        },
+      }}
+    >
+      {cards.map((card) => (
+        <motion.div
+          key={card.label}
+          variants={{
+            hidden: { opacity: 0, scale: 0.9, y: 20 },
+            visible: { opacity: 1, scale: 1, y: 0 },
+          }}
+          whileHover={{
+            scale: 1.03,
+            boxShadow: "0px 6px 20px rgba(0,0,0,0.12)",
+          }}
+          transition={{ duration: 0.3 }}
+        >
+          <Card className="rounded-2xl">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-3">
+                <div className={`p-2 rounded-lg ${card.iconBg}`}>
+                  {card.icon}
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
-          >
-            <Card className="hover:shadow-soft transition-all duration-300">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-green-500/10 rounded-lg">
-                    <CheckCircle className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Booked Rides</p>
-                    <p className="text-2xl font-bold text-green-600">{statsLoading ? '...' : stats.totalBookedRides}</p>
-                  </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{card.label}</p>
+                  <p className={`text-2xl font-bold ${card.color}`}>
+                    {statsLoading ? "..." : card.value}
+                  </p>
                 </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.2 }}
-          >
-            <Card className="hover:shadow-soft transition-all duration-300">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-500/10 rounded-lg">
-                    <Calendar className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Daily Rides</p>
-                    <p className="text-2xl font-bold text-blue-600">{statsLoading ? '...' : stats.dailyRides}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.3 }}
-          >
-            <Card className="hover:shadow-soft transition-all duration-300">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-orange-500/10 rounded-lg">
-                    <TrendingUp className="w-5 h-5 text-orange-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Active Rides</p>
-                    <p className="text-2xl font-bold text-orange-600">{statsLoading ? '...' : stats.totalActiveRides}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.4 }}
-          >
-            <Card className="hover:shadow-soft transition-all duration-300">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-purple-500/10 rounded-lg">
-                    <HandHeart className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Ride Requests</p>
-                    <p className="text-2xl font-bold text-purple-600">{statsLoading ? '...' : stats.totalRideRequests}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3, delay: 0.5 }}
-          >
-            <Card className="hover:shadow-soft transition-all duration-300">
-              <CardContent className="p-4">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-emerald-500/10 rounded-lg">
-                    <DollarSign className="w-5 h-5 text-emerald-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Total Revenue</p>
-                    <p className="text-2xl font-bold text-emerald-600">${statsLoading ? '...' : stats.totalRevenue.toFixed(2)}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-      </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      ))}
+    </motion.div>
   );
-};
+}
 
 export default DashboardStats;

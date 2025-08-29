@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { supabaseClient } from '@/lib/supabase/client';
-import { toast } from 'sonner';
-import { useUser } from '@clerk/nextjs';
+import { useState, useEffect } from "react";
+import { supabaseClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
+import { useUser } from "@clerk/nextjs";
 
 export interface Ride {
   id: string;
@@ -12,15 +12,16 @@ export interface Ride {
   available_seats: number;
   price_per_seat: number;
   description?: string;
-  status: 'active' | 'completed' | 'cancelled';
+  status: "active" | "completed" | "cancelled";
   created_at: string;
   updated_at: string;
   driver?: {
-    user_id: string;
+    id: string;
     full_name: string;
     avatar_url?: string;
     rating: number;
     college: string;
+    phone: string;
   };
 }
 
@@ -42,32 +43,39 @@ export function useRides() {
     try {
       setLoading(true);
       const { data, error } = await supabaseClient
-        .from('rides')
-        .select(`
-          *,
-          driver:profiles!rides_driver_id_fkey (
-            user_id,
-            full_name,
-            avatar_url,
-            rating,
-            college
-          ),
-          bookings (
-            seats_booked
-          )
-        `)
-        .eq('status', 'active')
-        .order('departure_time', { ascending: true });
+        .from("rides")
+        .select(
+          `
+    *,
+    driver:profiles!rides_driver_id_fkey (
+      id,
+      full_name,
+      avatar_url,
+      college,
+      phone,
+      ratings (
+        rating
+      )
+    ),
+    bookings (
+      seats_booked
+    )
+  `
+        )
+        .eq("status", "active")
+        .order("departure_time", { ascending: true });
 
       if (error) throw error;
-      
-      const availableRides = (data || []).filter(ride => {
-        const totalBookedSeats = ride.bookings?.reduce(
-          (sum: number, booking: any) => sum + booking.seats_booked, 0
-        ) || 0;
+
+      const availableRides = (data || []).filter((ride) => {
+        const totalBookedSeats =
+          ride.bookings?.reduce(
+            (sum: number, booking: any) => sum + booking.seats_booked,
+            0
+          ) || 0;
         return totalBookedSeats < ride.available_seats;
       });
-      
+
       setRides(availableRides as Ride[]);
     } catch (error: any) {
       toast.error("Error fetching rides", {
@@ -88,10 +96,8 @@ export function useRides() {
 
     try {
       const { data, error } = await supabaseClient
-        .from('rides')
-        .insert([
-          { ...rideData, driver_id: user.id }
-        ])
+        .from("rides")
+        .insert([{ ...rideData, driver_id: user.id }])
         .select()
         .single();
 
@@ -121,9 +127,9 @@ export function useRides() {
 
     try {
       const { data: ride, error: rideError } = await supabaseClient
-        .from('rides')
-        .select('*, driver:profiles!rides_driver_id_fkey(full_name)')
-        .eq('id', rideId)
+        .from("rides")
+        .select("*, driver:profiles!rides_driver_id_fkey(full_name)")
+        .eq("id", rideId)
         .single();
 
       if (rideError) throw rideError;
@@ -131,15 +137,15 @@ export function useRides() {
       const totalAmount = ride.price_per_seat * seatsBooked;
 
       const { data, error } = await supabaseClient
-        .from('bookings')
+        .from("bookings")
         .insert([
           {
             ride_id: rideId,
             passenger_id: user.id,
             seats_booked: seatsBooked,
             total_amount: totalAmount,
-            status: 'pending'
-          }
+            status: "pending",
+          },
         ])
         .select()
         .single();
@@ -170,10 +176,10 @@ export function useRides() {
 
     try {
       const { error } = await supabaseClient
-        .from('rides')
-        .update({ status: 'completed' })
-        .eq('id', rideId)
-        .eq('driver_id', user.id);
+        .from("rides")
+        .update({ status: "completed" })
+        .eq("id", rideId)
+        .eq("driver_id", user.id);
 
       if (error) throw error;
 
@@ -201,6 +207,6 @@ export function useRides() {
     fetchRides,
     createRide,
     bookRide,
-    completeRide
+    completeRide,
   };
 }

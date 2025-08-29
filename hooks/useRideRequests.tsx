@@ -6,23 +6,24 @@ import { supabaseClient } from "@/lib/supabase/client";
 import { useUser } from "@clerk/nextjs";
 
 export interface Ride {
+  id: string;
+  driver_id: string;
+  from_location: string;
+  to_location: string;
+  departure_time: string;
+  available_seats: number;
+  price_per_seat: number;
+  description?: string;
+  status: string;
+  driver?: {
     id: string;
-    driver_id: string;
-    from_location: string;
-    to_location: string;
-    departure_time: string;
-    available_seats: number;
-    price_per_seat: number;
-    description?: string;
-    status: string;
-    driver?: {
-      user_id: string;
-      full_name: string;
-      avatar_url?: string;
-      rating: number;
-      college: string;
-    };
-  }
+    full_name: string;
+    avatar_url?: string;
+    college: string;
+    phone: string;
+    ratings?: { rating: number }[];
+  };
+}
 
 export interface RideRequest {
   id: string;
@@ -37,13 +38,13 @@ export interface RideRequest {
   created_at: string;
   updated_at: string;
   passenger?: {
-    user_id: string;
+    id: string;
     full_name: string;
     avatar_url?: string;
-    rating: number;
     college: string;
+    phone: string;
+    rating?: number;
   };
-
   ride?: Ride;
 }
 
@@ -65,48 +66,61 @@ export function useRideRequests() {
     try {
       setLoading(true);
 
+      // 1️⃣ Fetch ride requests with ride + driver + driver ratings
       const { data: requestsData, error: requestsError } = await supabaseClient
         .from("ride_requests")
-        .select(`
-            *,
-            ride:ride_id (
-            id,
-            driver_id,
-            from_location,
-            to_location,
-            departure_time,
-            available_seats,
-            price_per_seat
-            )
-        `)
+        .select(
+          `
+    *,
+    ride:ride_id (
+      id,
+      driver_id,
+      from_location,
+      to_location,
+      departure_time,
+      available_seats,
+      price_per_seat,
+      driver:profiles!rides_driver_id_fkey (
+        id,
+        full_name,
+        avatar_url,
+        college,
+        phone,
+        ratings (
+          rating
+        )
+      )
+    )
+  `
+        )
         .eq("status", "active")
         .order("preferred_departure_time", { ascending: true });
 
-
       if (requestsError) throw requestsError;
-
       if (!requestsData || requestsData.length === 0) {
         setRideRequests([]);
         return;
       }
 
+      // 2️⃣ Fetch passenger profiles
       const passengerIds = [
-        ...new Set(requestsData.map((request) => request.passenger_id)),
+        ...new Set(requestsData.map((req) => req.passenger_id)),
       ];
 
       const { data: profilesData, error: profilesError } = await supabaseClient
         .from("profiles")
-        .select("user_id, full_name, avatar_url, rating, college")
+        .select("user_id, full_name, avatar_url, college, phone")
         .in("user_id", passengerIds);
 
       if (profilesError) throw profilesError;
 
-      const requestsWithPassengers = requestsData.map((request) => ({
-        ...request,
-        passenger: profilesData?.find(
-          (profile) => profile.user_id === request.passenger_id
-        ),
-      }));
+      // 3️⃣ Combine requests with passenger info
+      const requestsWithPassengers = requestsData.map((req) => {
+        const passenger = profilesData.find(
+          (p) => p.user_id === req.passenger_id
+        );
+        return { ...req, passenger };
+      });
 
       setRideRequests(requestsWithPassengers as RideRequest[]);
     } catch (error: any) {
@@ -116,86 +130,27 @@ export function useRideRequests() {
     }
   };
 
-  const acceptRideRequestResponse = async (
-    responseId: string,
-    rideRequestId: string
-  ) => {
-    if (!user) {
-      toast.error("Please sign in to accept a ride response");
-      return { error: new Error("User not authenticated") };
-    }
-  
-    const { data: profile } = await supabaseClient
-      .from("profiles")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
-  
-    if (!profile) {
-      toast.error("Profile not found");
-      return { error: new Error("Profile not found") };
-    }
-  
-    try {
-      const { error: updateError } = await supabaseClient
-        .from("ride_requests")
-        .update({ status: "booked" })
-        .eq("id", rideRequestId)
-        .eq("passenger_id", profile.id); // ✅ use profile.id
-  
-      if (updateError) throw updateError;
-  
-      const { error: responseError } = await supabaseClient
-        .from("ride_request_responses")
-        .update({ status: "accepted" })
-        .eq("id", responseId);
-  
-      if (responseError) throw responseError;
-  
-      toast.success("Ride response accepted! The driver will contact you soon.");
-  
-      await fetchRideRequests();
-      return { error: null };
-    } catch (error: any) {
-      toast.error("Failed to accept ride response: " + error.message);
-      return { error };
-    }
-  };
-  
-
   const createRideRequest = async (requestData: CreateRideRequestData) => {
-    if (!user) {
-      toast.error("Please sign in to create a ride request");
-      return { error: new Error("User not authenticated") };
-    }
-  
-    const { data: profile } = await supabaseClient
-      .from("profiles")
-      .select("id")
-      .eq("user_id", user.id)
-      .single();
-  
-    if (!profile) {
-      toast.error("Profile not found");
-      return { error: new Error("Profile not found") };
-    }
-  
+    if (!user) return { error: new Error("User not authenticated") };
+
     try {
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("id")
+        .eq("user_id", user.id)
+        .single();
+
+      if (!profile) throw new Error("Profile not found");
+
       const { data, error } = await supabaseClient
         .from("ride_requests")
-        .insert([
-          {
-            ...requestData,
-            passenger_id: profile.id, // ✅ use profile.id
-          },
-        ])
+        .insert([{ ...requestData, passenger_id: profile.id }])
         .select()
         .single();
-  
+
       if (error) throw error;
-  
+
       toast.success("Ride request created successfully!");
-  
       await fetchRideRequests();
       return { data, error: null };
     } catch (error: any) {
@@ -203,7 +158,6 @@ export function useRideRequests() {
       return { error };
     }
   };
-  
 
   useEffect(() => {
     fetchRideRequests();
@@ -214,6 +168,5 @@ export function useRideRequests() {
     loading,
     fetchRideRequests,
     createRideRequest,
-    acceptRideRequestResponse,
   };
 }

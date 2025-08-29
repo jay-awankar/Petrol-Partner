@@ -1,6 +1,9 @@
-import { useState, useEffect } from "react";
+"use client";
 
-interface DashboardStats {
+import { useAuth } from "@clerk/nextjs";
+import { useEffect, useState } from "react";
+
+export interface DashboardStats {
   totalUsers: number;
   totalBookedRides: number;
   dailyRides: number;
@@ -10,6 +13,7 @@ interface DashboardStats {
 }
 
 export const useDashboardStats = () => {
+  const { getToken } = useAuth();
   const [stats, setStats] = useState<DashboardStats>({
     totalUsers: 0,
     totalBookedRides: 0,
@@ -23,9 +27,18 @@ export const useDashboardStats = () => {
   const fetchStats = async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/dashboard/stats", { credentials: "include" });
-      if (!res.ok) throw new Error("Failed to fetch stats");
 
+      // ✅ Get Clerk JWT
+      const token = await getToken();
+      if (!token) throw new Error("No Clerk token found");
+
+      const res = await fetch("/api/dashboard/stats", {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) throw new Error(`Failed to fetch stats: ${res.status}`);
       const data: DashboardStats = await res.json();
       setStats(data);
     } catch (err) {
@@ -37,9 +50,7 @@ export const useDashboardStats = () => {
 
   useEffect(() => {
     fetchStats();
-
-    // Optional: set interval to refresh stats every 30s
-    const interval = setInterval(fetchStats, 100000);
+    const interval = setInterval(fetchStats, 100000); // refresh every 100s
     return () => clearInterval(interval);
   }, []);
 
