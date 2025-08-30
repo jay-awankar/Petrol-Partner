@@ -58,11 +58,16 @@ export async function GET() {
     const { count: totalRideRequests, error: reqErr } = await supabase
       .from("ride_requests")
       .select("*", { count: "exact", head: true })
-      .eq("status", "pending");
+      // .eq("status", "pending");
     if (reqErr) {
       console.error("ride_requests count error:", reqErr);
       throw reqErr;
     }
+
+    // ✅ Ride offers (rides created by drivers)
+    const { count: totalRideOffers } = await supabase
+    .from("rides")
+    .select("*", { count: "exact", head: true });
 
     // ✅ Revenue
     const { data: revenueData, error: revenueErr } = await supabase
@@ -86,6 +91,7 @@ export async function GET() {
       dailyRides,
       totalActiveRides,
       totalRideRequests,
+      totalRideOffers,
       totalRevenue,
     });
   } catch (err: any) {

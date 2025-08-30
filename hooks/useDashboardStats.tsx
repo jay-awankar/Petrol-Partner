@@ -9,19 +9,13 @@ export interface DashboardStats {
   dailyRides: number;
   totalActiveRides: number;
   totalRideRequests: number;
+  totalRideOffers: number; 
   totalRevenue: number;
 }
 
 export const useDashboardStats = () => {
   const { getToken } = useAuth();
-  const [stats, setStats] = useState<DashboardStats>({
-    totalUsers: 0,
-    totalBookedRides: 0,
-    dailyRides: 0,
-    totalActiveRides: 0,
-    totalRideRequests: 0,
-    totalRevenue: 0,
-  });
+  const [stats, setStats] = useState<DashboardStats>();
   const [loading, setLoading] = useState(true);
 
   const fetchStats = async () => {
