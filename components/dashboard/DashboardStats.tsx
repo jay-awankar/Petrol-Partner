@@ -9,7 +9,7 @@ import {
   ClipboardList,
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { useDashboardStats } from "@/hooks/dashboard-stats/useDashboardStats";
 import { motion } from "framer-motion";
 
 const DashboardStats = () => {

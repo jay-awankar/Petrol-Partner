@@ -40,31 +40,14 @@ export function useRides() {
   const { user } = useUser();
 
   const fetchRides = async () => {
+    console.log("Fetching rides...");
     try {
       setLoading(true);
       const { data, error } = await supabaseClient
-        .from("rides")
-        .select(
-          `
-    *,
-    driver:profiles!rides_driver_id_fkey (
-      id,
-      full_name,
-      avatar_url,
-      college,
-      phone,
-      ratings (
-        rating
-      )
-    ),
-    bookings (
-      seats_booked
-    )
-  `
-        )
-        .eq("status", "active")
-        .order("departure_time", { ascending: true });
-
+  .from("rides")
+  .select("*");
+  setRides(data as Ride[]); // Temporarily set rides to all fetched data
+      console.log("Fetched rides:", data);
       if (error) throw error;
 
       const availableRides = (data || []).filter((ride) => {
@@ -81,6 +64,7 @@ export function useRides() {
       toast.error("Error fetching rides", {
         description: error.message,
       });
+      console.error("Error fetching rides:", error);
     } finally {
       setLoading(false);
     }

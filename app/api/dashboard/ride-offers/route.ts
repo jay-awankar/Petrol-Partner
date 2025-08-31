@@ -16,7 +16,7 @@ export async function GET() {
       .from("rides")
       .select("*, driver:profiles(full_name, rating)")
       .order("created_at", { ascending: false });
-
+    console.log("Fetched offers:", { data, error });
     if (error) throw error;
 
     return NextResponse.json({ offers: data });

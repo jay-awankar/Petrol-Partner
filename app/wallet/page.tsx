@@ -17,7 +17,7 @@ import {
   History,
   Download,
 } from "lucide-react";
-import { useWallet } from "@/hooks/useWallet";
+import { useWallet } from "@/hooks/wallet/useWallet";
 import Link from "next/link";
 import { format } from "date-fns";
 import { toast } from "sonner";

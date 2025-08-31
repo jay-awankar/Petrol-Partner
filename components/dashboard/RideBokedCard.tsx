@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import React from 'react'
-import { Card, CardContent } from './ui/card';
-import { Button } from './ui/button';
+import { Card, CardContent } from '../ui/card';
+import { Button } from '../ui/button';
 import { Badge, CheckCircle, Clock, MapPin, MessageCircle, Navigation, Star } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { format } from 'date-fns';
@@ -13,7 +13,7 @@ const getAverageRating = (ratings?: { rating: number }[]) => {
     return +(sum / ratings.length).toFixed(1); // rounded to 1 decimal
   };
 
-const BookedRideCard = ({ booking, onMessage, onTrack, onRate, onDetails }: { booking: any; onMessage: () => void; onTrack: () => void; onRate: () => void; onDetails: () => void }) => (
+const RideBookedCard = ({ booking, onMessage, onTrack, onRate, onDetails }: { booking: any; onMessage: () => void; onTrack: () => void; onRate: () => void; onDetails: () => void }) => (
     <motion.div
       key={booking.id}
       initial={{ opacity: 0, y: 20 }}
@@ -78,4 +78,4 @@ const BookedRideCard = ({ booking, onMessage, onTrack, onRate, onDetails }: { bo
     </motion.div>
   );
 
-export default BookedRideCard
+export default RideBookedCard

@@ -4,11 +4,11 @@ import { useAuth } from "@clerk/nextjs";
 import { redirect, useRouter } from "next/navigation";
 import { useEffect } from "react";
 
-import DashboardStats from "@/components/DashboardStats";
+import DashboardStats from "@/components/dashboard/DashboardStats";
 import ActiveRide from "@/components/ActiveRide";
-import SearchAndAction from "@/components/SearchAndAction";
-import MapComponent from "@/components/Map";
-import RidesAndRequests from "@/components/RidesAndRequests";
+import SearchAndAction from "@/components/dashboard/SearchAndAction";
+import MapComponent from "@/components/dashboard/Map";
+import DisplayAllRides from "@/components/dashboard/DisplayAllRides";
 
 const Page = () => {
   const { isLoaded, isSignedIn, userId } = useAuth();
@@ -30,10 +30,10 @@ const Page = () => {
   return (
     <div className="page min-h-screen bg-background container mx-auto p-4 space-y-6">
       <DashboardStats />
-      <SearchAndAction />
       <ActiveRide />
-      {/* <MapComponent className="h-64" /> */}
-      <RidesAndRequests />
+      <MapComponent className="h-64" />
+      <SearchAndAction />
+      <DisplayAllRides />
     </div>
   );
 };

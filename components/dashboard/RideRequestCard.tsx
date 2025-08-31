@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import React from 'react'
-import { Card, CardContent } from './ui/card';
-import { Button } from './ui/button';
+import { Card, CardContent } from '../ui/card';
+import { Button } from '../ui/button';
 import { Badge, Clock, MapPin, MessageCircle, Users } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { format } from 'date-fns';

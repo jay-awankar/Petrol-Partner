@@ -7,9 +7,9 @@ import { Button } from "./ui/button";
 import { MapPin, Clock, Navigation } from "lucide-react";
 import { format } from "date-fns";
 import { useAuth } from "@clerk/nextjs";
-import { useRides } from "@/hooks/useRides";
-import { useRideRequests } from "@/hooks/useRideRequests";
-import { useBookedRides } from "@/hooks/useBookedRides";
+import { useRides } from "@/hooks/dashboard-rides/useRides";
+import { useRideRequests } from "@/hooks/dashboard-rides/useRideRequests";
+import { useBookedRides } from "@/hooks/dashboard-rides/useBookedRides";
 import { toast } from "sonner";
 
 const ActiveRide = () => {
