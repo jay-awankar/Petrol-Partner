@@ -44,7 +44,7 @@ const DisplayAllRides = () => {
   const { rideRequests, loading: requestsLoading } = useRideRequests();
   const { user } = useUser();
 
-  const filteredRides = useMemo(() => {
+  const filteredRidesOffers = useMemo(() => {
     if (!rides) return [];
     return rides.filter((ride) => {
       const matches = [
@@ -67,7 +67,7 @@ const DisplayAllRides = () => {
     [rideRequests, searchQuery]
   );
 
-  const filteredBookedRides = useMemo(
+  const filteredRideBookings = useMemo(
     () =>
       bookedRides.filter((b) =>
         [
@@ -83,13 +83,13 @@ const DisplayAllRides = () => {
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="offers">
-          Ride Offers ({filteredRides.length})
+          Ride Offers ({filteredRidesOffers.length})
         </TabsTrigger>
         <TabsTrigger value="requests">
           Ride Requests ({filteredRideRequests.length})
         </TabsTrigger>
         <TabsTrigger value="booked">
-          Booked Rides ({filteredBookedRides.length})
+          Booked Rides ({filteredRideBookings.length})
         </TabsTrigger>
       </TabsList>
 

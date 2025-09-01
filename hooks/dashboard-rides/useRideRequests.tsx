@@ -93,7 +93,7 @@ export function useRideRequests() {
     )
   `
         )
-        .eq("status", "active")
+        .eq("status", "pending")
         .order("preferred_departure_time", { ascending: true });
 
       if (requestsError) throw requestsError;
