@@ -7,9 +7,9 @@ import { Button } from "./ui/button";
 import { MapPin, Clock, Navigation } from "lucide-react";
 import { format } from "date-fns";
 import { useAuth } from "@clerk/nextjs";
-import { useRides } from "@/hooks/dashboard-rides/useRides";
+import { useRideOffers } from "@/hooks/dashboard-rides/useRideOffers";
 import { useRideRequests } from "@/hooks/dashboard-rides/useRideRequests";
-import { useBookedRides } from "@/hooks/dashboard-rides/useBookedRides";
+import { useRideBookings } from "@/hooks/dashboard-rides/useRideBookings";
 import { toast } from "sonner";
 
 const ActiveRide = () => {
@@ -17,9 +17,9 @@ const ActiveRide = () => {
   const [trackingOpen, setTrackingOpen] = useState(false);
   const [rideToTrack, setRideToTrack] = useState<any>(null);
 
-  const { rides, loading: ridesLoading } = useRides();
+  const { rides, loading: ridesLoading } = useRideOffers();
   const { rideRequests, loading: requestsLoading } = useRideRequests();
-  const { bookedRides, loading: bookedRidesLoading } = useBookedRides();
+  const { bookedRides, loading: bookedRidesLoading } = useRideBookings();
 
   if (ridesLoading || requestsLoading || bookedRidesLoading) {
     return <p className="text-sm text-muted-foreground">Loading your rides...</p>;

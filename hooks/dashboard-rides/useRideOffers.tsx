@@ -19,7 +19,7 @@ export interface Ride {
     id: string;
     full_name: string;
     avatar_url?: string;
-    rating: number;
+    rating?: number;
     college: string;
     phone: string;
   };
@@ -34,41 +34,77 @@ export interface CreateRideData {
   description?: string;
 }
 
-export function useRides() {
+export function useRideOffers() {
   const [rides, setRides] = useState<Ride[]>([]);
   const [loading, setLoading] = useState(true);
   const { user } = useUser();
 
   const fetchRides = async () => {
-    console.log("Fetching rides...");
     try {
       setLoading(true);
-      const { data, error } = await supabaseClient
-  .from("rides")
-  .select("*");
-  setRides(data as Ride[]); // Temporarily set rides to all fetched data
-      console.log("Fetched rides:", data);
+  
+      // Fetch rides + bookings + driver info
+      const { data: ridesData, error } = await supabaseClient
+        .from("rides")
+        .select(`
+          id,
+          driver_id,
+          from_location,
+          to_location,
+          departure_time,
+          available_seats,
+          price_per_seat,
+          description,
+          status,
+          created_at,
+          updated_at,
+          bookings(seats_booked),
+          driver:profiles (
+            id,
+            full_name,
+            avatar_url,
+            college,
+            phone
+          )
+        `)
+        .order("departure_time", { ascending: false });
+  
       if (error) throw error;
-
-      const availableRides = (data || []).filter((ride) => {
+  
+      // Fetch driver ratings separately
+      const { data: ratings } = await supabaseClient
+        .from("profile_with_ratings")
+        .select("rated_id, avg_rating");
+  
+      // Merge ratings into rides
+      const ridesWithRatings = (ridesData || []).map((ride) => {
         const totalBookedSeats =
           ride.bookings?.reduce(
-            (sum: number, booking: any) => sum + booking.seats_booked,
+            (sum: number, b: any) => sum + b.seats_booked,
             0
           ) || 0;
-        return totalBookedSeats < ride.available_seats;
+  
+        const ratingEntry = ratings?.find(r => r.rated_id === ride.driver_id);
+  
+        return {
+          ...ride,
+          driver: {
+            ...ride.driver,
+            rating: ratingEntry?.avg_rating || 0,
+          },
+          isAvailable: totalBookedSeats < ride.available_seats,
+        };
       });
-
-      setRides(availableRides as Ride[]);
+  
+      setRides(ridesWithRatings);
     } catch (error: any) {
-      toast.error("Error fetching rides", {
-        description: error.message,
-      });
+      toast.error("Error fetching rides", { description: error.message });
       console.error("Error fetching rides:", error);
     } finally {
       setLoading(false);
     }
   };
+  
 
   const createRide = async (rideData: CreateRideData) => {
     if (!user) {

@@ -3,8 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Card } from "../ui/card";
 import { CheckCircle, HandHeart, Users } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
-import { useRides } from "@/hooks/dashboard-rides/useRides";
-import { useBookedRides } from "@/hooks/dashboard-rides/useBookedRides";
+import { useRideOffers } from "@/hooks/dashboard-rides/useRideOffers";
+import { useRideBookings } from "@/hooks/dashboard-rides/useRideBookings";
 import { useRideRequests } from "@/hooks/dashboard-rides/useRideRequests";
 import { redirect } from "next/navigation";
 import RideRequestCard from "./RideRequestCard";
@@ -35,16 +35,16 @@ const DisplayAllRides = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("offers");
 
-  const { rides, loading: ridesLoading, bookRide, completeRide } = useRides();
+  const { rides, loading: ridesLoading, bookRide, completeRide } = useRideOffers();
   const {
     bookedRides,
     loading: bookedRidesLoading,
     checkIfRated,
-  } = useBookedRides();
+  } = useRideBookings();
   const { rideRequests, loading: requestsLoading } = useRideRequests();
   const { user } = useUser();
 
-  const filteredRides = useMemo(() => {
+  const filteredRidesOffers = useMemo(() => {
     if (!rides) return [];
     return rides.filter((ride) => {
       const matches = [
@@ -67,7 +67,7 @@ const DisplayAllRides = () => {
     [rideRequests, searchQuery]
   );
 
-  const filteredBookedRides = useMemo(
+  const filteredRideBookings = useMemo(
     () =>
       bookedRides.filter((b) =>
         [
@@ -83,13 +83,13 @@ const DisplayAllRides = () => {
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="offers">
-          Ride Offers ({filteredRides.length})
+          Ride Offers ({filteredRidesOffers.length})
         </TabsTrigger>
         <TabsTrigger value="requests">
           Ride Requests ({filteredRideRequests.length})
         </TabsTrigger>
         <TabsTrigger value="booked">
-          Booked Rides ({filteredBookedRides.length})
+          Booked Rides ({filteredRideBookings.length})
         </TabsTrigger>
       </TabsList>
 

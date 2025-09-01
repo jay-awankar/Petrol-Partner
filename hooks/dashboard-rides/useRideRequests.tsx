@@ -21,7 +21,7 @@ export interface Ride {
     avatar_url?: string;
     college: string;
     phone: string;
-    ratings?: { rating: number }[];
+    avg_rating?: number;
   };
 }
 
@@ -37,14 +37,16 @@ export interface RideRequest {
   status: string;
   created_at: string;
   updated_at: string;
+
   passenger?: {
     id: string;
     full_name: string;
     avatar_url?: string;
     college: string;
     phone: string;
-    rating?: number;
+    avg_rating?: number; // passenger’s average rating
   };
+
   ride?: Ride;
 }
 
@@ -66,65 +68,43 @@ export function useRideRequests() {
     try {
       setLoading(true);
 
-      // 1️⃣ Fetch ride requests with ride + driver + driver ratings
-      const { data: requestsData, error: requestsError } = await supabaseClient
+      // 1️⃣ Fetch ride requests with passengers + rides + driver
+      const { data, error } = await supabaseClient
         .from("ride_requests")
-        .select(
-          `
-    *,
-    ride:ride_id (
-      id,
-      driver_id,
-      from_location,
-      to_location,
-      departure_time,
-      available_seats,
-      price_per_seat,
-      driver:profiles!rides_driver_id_fkey (
-        id,
-        full_name,
-        avatar_url,
-        college,
-        phone,
-        ratings (
-          rating
-        )
-      )
-    )
-  `
-        )
+        .select(`
+          id,
+          passenger:profile_with_ratings (
+            id,
+            full_name,
+            avatar_url,
+            college,
+            phone,
+            avg_rating
+          ),
+          ride:rides (
+            id,
+            from_location,
+            to_location,
+            departure_time,
+            driver:profile_with_ratings (
+              id,
+              full_name,
+              avatar_url,
+              college,
+              phone,
+              avg_rating
+            )
+          )
+        `)
         .eq("status", "active")
         .order("preferred_departure_time", { ascending: true });
 
-      if (requestsError) throw requestsError;
-      if (!requestsData || requestsData.length === 0) {
-        setRideRequests([]);
-        return;
-      }
+      if (error) throw error;
 
-      // 2️⃣ Fetch passenger profiles
-      const passengerIds = [
-        ...new Set(requestsData.map((req) => req.passenger_id)),
-      ];
-
-      const { data: profilesData, error: profilesError } = await supabaseClient
-        .from("profiles")
-        .select("user_id, full_name, avatar_url, college, phone")
-        .in("user_id", passengerIds);
-
-      if (profilesError) throw profilesError;
-
-      // 3️⃣ Combine requests with passenger info
-      const requestsWithPassengers = requestsData.map((req) => {
-        const passenger = profilesData.find(
-          (p) => p.user_id === req.passenger_id
-        );
-        return { ...req, passenger };
-      });
-
-      setRideRequests(requestsWithPassengers as RideRequest[]);
+      setRideRequests(data as RideRequest[]);
     } catch (error: any) {
       toast.error("Error fetching ride requests: " + error.message);
+      setRideRequests([]);
     } finally {
       setLoading(false);
     }

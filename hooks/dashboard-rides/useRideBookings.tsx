@@ -30,7 +30,7 @@ interface BookedRide {
   };
 }
 
-export const useBookedRides = () => {
+export const useRideBookings = () => {
   const [bookedRides, setBookedRides] = useState<BookedRide[]>([]);
   const [loading, setLoading] = useState(true);
 
