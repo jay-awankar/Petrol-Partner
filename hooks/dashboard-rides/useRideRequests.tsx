@@ -71,6 +71,7 @@ export function useRideRequests() {
       // 1️⃣ Fetch ride requests with passengers + rides + driver
       const { data, error } = await supabaseClient
         .from("ride_requests")
+<<<<<<< HEAD
         .select(`
           id,
           passenger:profile_with_ratings (
@@ -97,6 +98,33 @@ export function useRideRequests() {
           )
         `)
         .eq("status", "active")
+=======
+        .select(
+          `
+    *,
+    ride:ride_id (
+      id,
+      driver_id,
+      from_location,
+      to_location,
+      departure_time,
+      available_seats,
+      price_per_seat,
+      driver:profiles!rides_driver_id_fkey (
+        id,
+        full_name,
+        avatar_url,
+        college,
+        phone,
+        ratings (
+          rating
+        )
+      )
+    )
+  `
+        )
+        .eq("status", "pending")
+>>>>>>> ecc52c76fe009fda29e0c9d94d7ef59f82b1ce63
         .order("preferred_departure_time", { ascending: true });
 
       if (error) throw error;

@@ -42,6 +42,7 @@ export function useRideOffers() {
   const fetchRides = async () => {
     try {
       setLoading(true);
+<<<<<<< HEAD:hooks/dashboard-rides/useRideOffers.tsx
   
       // Fetch rides + bookings + driver info
       const { data: ridesData, error } = await supabaseClient
@@ -69,6 +70,15 @@ export function useRideOffers() {
         `)
         .order("departure_time", { ascending: false });
   
+=======
+      const { data, error } = await supabaseClient
+        .from("rides")
+        .select("*")
+        .eq("status", "active")
+        .order("departure_time", { ascending: true });
+        setRides(data as Ride[]); // Temporarily set rides to all fetched data
+
+>>>>>>> ecc52c76fe009fda29e0c9d94d7ef59f82b1ce63:hooks/dashboard-rides/useRides.tsx
       if (error) throw error;
   
       // Fetch driver ratings separately
