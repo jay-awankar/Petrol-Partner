@@ -18,11 +18,12 @@ export interface Ride {
   driver?: {
     id: string;
     full_name: string;
-    avatar_url?: string;
-    rating?: number;
+    avatar_url: string;
+    rating: number;
     college: string;
     phone: string;
   };
+  isAvailable?: boolean;
 }
 
 export interface CreateRideData {
@@ -42,9 +43,8 @@ export function useRideOffers() {
   const fetchRides = async () => {
     try {
       setLoading(true);
-<<<<<<< HEAD:hooks/dashboard-rides/useRideOffers.tsx
-  
-      // Fetch rides + bookings + driver info
+
+      // 1️⃣ Fetch rides + driver info
       const { data: ridesData, error } = await supabaseClient
         .from("rides")
         .select(`
@@ -55,58 +55,57 @@ export function useRideOffers() {
           departure_time,
           available_seats,
           price_per_seat,
-          description,
           status,
+          description,
           created_at,
           updated_at,
-          bookings(seats_booked),
-          driver:profiles (
-            id,
-            full_name,
-            avatar_url,
-            college,
-            phone
-          )
+          driver:profiles(id, full_name, avatar_url, college)
         `)
         .order("departure_time", { ascending: false });
-  
-=======
-      const { data, error } = await supabaseClient
-        .from("rides")
-        .select("*")
-        .eq("status", "active")
-        .order("departure_time", { ascending: true });
-        setRides(data as Ride[]); // Temporarily set rides to all fetched data
 
->>>>>>> ecc52c76fe009fda29e0c9d94d7ef59f82b1ce63:hooks/dashboard-rides/useRides.tsx
       if (error) throw error;
-  
-      // Fetch driver ratings separately
+      if (!ridesData) {
+        setRides([]);
+        return;
+      }
+
+      const rideIds = ridesData.map(r => r.id);
+
+      // 2️⃣ Fetch all bookings for these rides
+      const { data: bookings, error: bookingsError } = await supabaseClient
+        .from("bookings")
+        .select("ride_id, seats_booked")
+        .in("ride_id", rideIds);
+
+      if (bookingsError) throw bookingsError;
+
+      // 3️⃣ Fetch driver ratings
+      const driverIds = ridesData.map(r => r.driver_id);
       const { data: ratings } = await supabaseClient
-        .from("profile_with_ratings")
-        .select("rated_id, avg_rating");
-  
-      // Merge ratings into rides
-      const ridesWithRatings = (ridesData || []).map((ride) => {
-        const totalBookedSeats =
-          ride.bookings?.reduce(
-            (sum: number, b: any) => sum + b.seats_booked,
-            0
-          ) || 0;
-  
-        const ratingEntry = ratings?.find(r => r.rated_id === ride.driver_id);
-  
+        .from("profile_ratings")
+        .select("profile_id, avg_rating")
+        .in("profile_id", driverIds);
+
+      // 4️⃣ Merge bookings and ratings
+      const ridesWithInfo = ridesData.map(ride => {
+        const totalBookedSeats = bookings
+          ?.filter(b => b.ride_id === ride.id)
+          .reduce((sum, b) => sum + b.seats_booked, 0) || 0;
+
+        const driverRating = ratings?.find(r => r.profile_id === ride.driver_id);
+
         return {
           ...ride,
           driver: {
             ...ride.driver,
-            rating: ratingEntry?.avg_rating || 0,
+            rating: driverRating?.avg_rating || 0,
           },
-          isAvailable: totalBookedSeats < ride.available_seats,
+          available_seats: ride.available_seats - totalBookedSeats,
+          isAvailable: ride.available_seats - totalBookedSeats > 0,
         };
       });
-  
-      setRides(ridesWithRatings);
+
+      setRides(ridesWithInfo);
     } catch (error: any) {
       toast.error("Error fetching rides", { description: error.message });
       console.error("Error fetching rides:", error);
@@ -114,7 +113,6 @@ export function useRideOffers() {
       setLoading(false);
     }
   };
-  
 
   const createRide = async (rideData: CreateRideData) => {
     if (!user) {
@@ -140,9 +138,7 @@ export function useRideOffers() {
       await fetchRides();
       return { data, error: null };
     } catch (error: any) {
-      toast.error("Failed to create ride", {
-        description: error.message,
-      });
+      toast.error("Failed to create ride", { description: error.message });
       return { error };
     }
   };
@@ -156,13 +152,11 @@ export function useRideOffers() {
     }
 
     try {
-      const { data: ride, error: rideError } = await supabaseClient
-        .from("rides")
-        .select("*, driver:profiles!rides_driver_id_fkey(full_name)")
-        .eq("id", rideId)
-        .single();
-
-      if (rideError) throw rideError;
+      // Check availability dynamically before booking
+      const ride = rides.find(r => r.id === rideId);
+      if (!ride) throw new Error("Ride not found");
+      if (!ride.isAvailable || seatsBooked > ride.available_seats)
+        throw new Error(`Not enough seats available. Only ${ride.available_seats} left.`);
 
       const totalAmount = ride.price_per_seat * seatsBooked;
 
@@ -173,7 +167,7 @@ export function useRideOffers() {
             ride_id: rideId,
             passenger_id: user.id,
             seats_booked: seatsBooked,
-            total_amount: totalAmount,
+            total_price: totalAmount,
             status: "pending",
           },
         ])
@@ -189,9 +183,7 @@ export function useRideOffers() {
       await fetchRides();
       return { data, error: null };
     } catch (error: any) {
-      toast.error("Failed to book ride", {
-        description: error.message,
-      });
+      toast.error("Failed to book ride", { description: error.message });
       return { error };
     }
   };
@@ -220,9 +212,7 @@ export function useRideOffers() {
       await fetchRides();
       return { error: null };
     } catch (error: any) {
-      toast.error("Failed to complete ride", {
-        description: error.message,
-      });
+      toast.error("Failed to complete ride", { description: error.message });
       return { error };
     }
   };

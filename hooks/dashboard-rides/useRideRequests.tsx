@@ -21,7 +21,6 @@ export interface Ride {
     avatar_url?: string;
     college: string;
     phone: string;
-    avg_rating?: number;
   };
 }
 
@@ -31,31 +30,30 @@ export interface RideRequest {
   from_location: string;
   to_location: string;
   preferred_departure_time: string;
-  max_price_per_seat: number;
-  passengers_count: number;
+  requested_seats: number;
+  price_per_seat: number;
   description?: string;
   status: string;
   created_at: string;
   updated_at: string;
-
   passenger?: {
     id: string;
     full_name: string;
     avatar_url?: string;
     college: string;
     phone: string;
-    avg_rating?: number; // passenger’s average rating
+    avg_rating?: number;
   };
-
   ride?: Ride;
+  seatsAvailable?: boolean;
 }
 
 export interface CreateRideRequestData {
   from_location: string;
   to_location: string;
   preferred_departure_time: string;
-  max_price_per_seat: number;
-  passengers_count: number;
+  requested_seats: number;
+  price_per_seat: number;
   description?: string;
 }
 
@@ -68,71 +66,59 @@ export function useRideRequests() {
     try {
       setLoading(true);
 
-      // 1️⃣ Fetch ride requests with passengers + rides + driver
-      const { data, error } = await supabaseClient
+      // 1️⃣ Fetch ride requests + passenger info
+      const { data: requestsData, error: requestsError } = await supabaseClient
         .from("ride_requests")
-<<<<<<< HEAD
         .select(`
-          id,
-          passenger:profile_with_ratings (
-            id,
-            full_name,
-            avatar_url,
-            college,
-            phone,
-            avg_rating
-          ),
-          ride:rides (
-            id,
-            from_location,
-            to_location,
-            departure_time,
-            driver:profile_with_ratings (
-              id,
-              full_name,
-              avatar_url,
-              college,
-              phone,
-              avg_rating
-            )
-          )
+          *,
+          passenger:profiles(id, full_name, avatar_url, college, phone)
         `)
         .eq("status", "active")
-=======
-        .select(
-          `
-    *,
-    ride:ride_id (
-      id,
-      driver_id,
-      from_location,
-      to_location,
-      departure_time,
-      available_seats,
-      price_per_seat,
-      driver:profiles!rides_driver_id_fkey (
-        id,
-        full_name,
-        avatar_url,
-        college,
-        phone,
-        ratings (
-          rating
-        )
-      )
-    )
-  `
-        )
-        .eq("status", "pending")
->>>>>>> ecc52c76fe009fda29e0c9d94d7ef59f82b1ce63
         .order("preferred_departure_time", { ascending: true });
 
-      if (error) throw error;
+      if (requestsError) throw requestsError;
+      if (!requestsData) {
+        setRideRequests([]);
+        return;
+      }
 
-      setRideRequests(data as RideRequest[]);
+      // 2️⃣ Fetch passenger ratings
+      const passengerIds = requestsData.map((r: any) => r.passenger_id);
+      const { data: ratingsData } = await supabaseClient
+        .from("profile_ratings")
+        .select("profile_id, avg_rating")
+        .in("profile_id", passengerIds);
+
+      // 3️⃣ Fetch bookings per ride request
+      const requestIds = requestsData.map((r: any) => r.id);
+      const { data: bookingsData } = await supabaseClient
+        .from("bookings")
+        .select("ride_request_id, seats_booked")
+        .in("ride_request_id", requestIds)
+        .eq("status", "pending"); // consider pending bookings
+
+      // 4️⃣ Merge everything
+      const mergedRequests: RideRequest[] = requestsData.map((req: any) => {
+        const ratingEntry = ratingsData?.find((r: any) => r.profile_id === req.passenger_id);
+        const totalBookedSeats = bookingsData
+          ?.filter((b: any) => b.ride_request_id === req.id)
+          .reduce((sum: number, b: any) => sum + b.seats_booked, 0) || 0;
+
+        return {
+          ...req,
+          passenger: {
+            ...req.passenger,
+            avg_rating: ratingEntry?.avg_rating ?? 0,
+          },
+          seatsAvailable: totalBookedSeats < req.requested_seats,
+        };
+      });
+
+      setRideRequests(mergedRequests);
     } catch (error: any) {
       toast.error("Error fetching ride requests: " + error.message);
       setRideRequests([]);
+      console.error(error);
     } finally {
       setLoading(false);
     }

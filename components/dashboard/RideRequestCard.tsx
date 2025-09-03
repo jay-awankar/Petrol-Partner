@@ -26,7 +26,7 @@ const RideRequestCard = ({ request, onRespond }: { request: any; onRespond: () =
               <div>
                 <h3 className="font-semibold">{request.passenger?.full_name || 'Unknown Passenger'}</h3>
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <span>★ {request.passenger?.rating || 0}</span>
+                  <span>★ {request.passenger?.avg_rating || 0}</span>
                   <span>•</span>
                   <span>{request.passenger?.college || 'College'}</span>
                 </div>
@@ -34,7 +34,7 @@ const RideRequestCard = ({ request, onRespond }: { request: any; onRespond: () =
             </div>
             <div className="flex flex-col items-end space-y-1">
               <Badge variant="secondary">Requesting</Badge>
-              <span className="text-lg font-bold text-secondary">≤${request.max_price_per_seat}</span>
+              <span className="text-lg font-bold text-secondary">≤${request.price_per_seat}</span>
             </div>
           </div>
   
@@ -52,7 +52,8 @@ const RideRequestCard = ({ request, onRespond }: { request: any; onRespond: () =
               </div>
               <div className="flex items-center space-x-2">
                 <Users className="w-4 h-4" />
-                <span>{request.passengers_count} passenger{request.passengers_count > 1 ? 's' : ''}</span>
+                <span>{request.requested_seats} passenger{request.requested_seats > 1 ? 's' : ''}</span>
+                <span>{request.requested_seats}</span>
               </div>
             </div>
   

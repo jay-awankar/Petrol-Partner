@@ -9,13 +9,6 @@ import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import Avatar from "./Avatar";
 
-// Utility to calculate average rating
-const getAverageRating = (ratings?: { rating: number }[]) => {
-  if (!ratings || ratings.length === 0) return 0;
-  const sum = ratings.reduce((acc, r) => acc + r.rating, 0);
-  return +(sum / ratings.length).toFixed(1); // rounded to 1 decimal
-};
-
 const RideOfferCard = ({
   ride,
   onBook,
@@ -43,7 +36,7 @@ const RideOfferCard = ({
                 {ride.driver?.full_name || "Unknown Driver"}
               </h3>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <span>★ {getAverageRating(ride.driver?.ratings)}</span>
+                <span>★ {ride.driver?.rating}</span>
                 <span>•</span>
                 <span>{ride.driver?.college || "College"}</span>
               </div>

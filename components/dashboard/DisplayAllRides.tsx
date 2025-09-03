@@ -8,7 +8,7 @@ import { useRideBookings } from "@/hooks/dashboard-rides/useRideBookings";
 import { useRideRequests } from "@/hooks/dashboard-rides/useRideRequests";
 import { redirect } from "next/navigation";
 import RideRequestCard from "./RideRequestCard";
-import RideBookedCard from "./RideBokedCard";
+import RideBookedCard from "./RideBookedCard";
 import RideOfferCard from "./RideOfferCard";
 
 // --- Empty State Component ---
@@ -71,13 +71,17 @@ const DisplayAllRides = () => {
     () =>
       bookedRides.filter((b) =>
         [
-          b.ride.from_location,
-          b.ride.to_location,
-          b.ride.driver?.full_name,
+          b.ride?.from_location,
+          b.ride?.to_location,
+          b.ride?.driver?.full_name,
+          b.ride_request?.from_location,
+          b.ride_request?.to_location,
+          b.ride_request?.passenger?.full_name,
         ].some((f) => f?.toLowerCase().includes(searchQuery.toLowerCase()))
       ),
     [bookedRides, searchQuery]
   );
+  
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
@@ -97,14 +101,14 @@ const DisplayAllRides = () => {
       <TabsContent value="offers" className="space-y-4">
         {ridesLoading ? (
           <p className="text-center text-muted-foreground">Loading rides...</p>
-        ) : rides.length === 0 ? (
+        ) : filteredRidesOffers.length === 0 ? (
           <EmptyState
             icon={Users}
             title="No rides available"
             description="Be the first to offer a ride!"
           />
         ) : (
-          rides.map((ride) => (
+          (filteredRidesOffers || []).map((ride) => (
             <RideOfferCard
               key={ride.id}
               ride={ride}
@@ -120,14 +124,14 @@ const DisplayAllRides = () => {
           <p className="text-center text-muted-foreground">
             Loading ride requests...
           </p>
-        ) : rideRequests.length === 0 ? (
+        ) : filteredRideRequests.length === 0 ? (
           <EmptyState
             icon={HandHeart}
             title="No ride requests"
             description="Be the first to request a ride!"
           />
         ) : (
-          rideRequests.map((req) => (
+          (filteredRideRequests || []).map((req) => (
             <RideRequestCard key={req.id} request={req} onRespond={() => {}} />
           ))
         )}
@@ -139,14 +143,14 @@ const DisplayAllRides = () => {
           <p className="text-center text-muted-foreground">
             Loading booked rides...
           </p>
-        ) : bookedRides.length === 0 ? (
+        ) : filteredRideBookings.length === 0 ? (
           <EmptyState
             icon={CheckCircle}
             title="No booked rides"
             description="Your booked rides will appear here"
           />
         ) : (
-          bookedRides.map((b) => (
+          (filteredRideBookings || []).map((b) => (
             <RideBookedCard
               key={b.id}
               booking={b}
