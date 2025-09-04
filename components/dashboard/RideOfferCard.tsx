@@ -7,7 +7,7 @@ import { Button } from "../ui/button";
 import { Badge, Clock, MapPin, Users } from "lucide-react";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
-import Avatar from "./Avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const RideOfferCard = ({
   ride,
@@ -26,11 +26,13 @@ const RideOfferCard = ({
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center space-x-3">
-            <Avatar
-              name={ride.driver?.full_name}
-              bgClass="bg-gradient-primary"
-              onClick={() => redirect(`/profile/${ride.driver?.id}`)}
-            />
+            <Avatar className="w-12 h-12 cursor-pointer">
+              <AvatarImage src={ride.driver.avatar_url}
+              onClick={() => redirect(`/profile/${ride.driver?.id}`)} />
+              <AvatarFallback className="bg-gradient-primary text-white text-2xl">
+                {ride.driver.full_name?.split(' ').map(n => n[0]).join('')}
+              </AvatarFallback>
+            </Avatar> 
             <div>
               <h3 className="font-semibold">
                 {ride.driver?.full_name || "Unknown Driver"}

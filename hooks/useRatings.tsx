@@ -4,6 +4,7 @@ import { useState } from "react";
 import { supabaseClient } from "@/lib/supabase/client";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
+import { set } from "date-fns";
 
 export interface Rating {
   id: string;
@@ -24,7 +25,8 @@ export interface RatingWithProfile extends Rating {
 
 export function useRatings() {
   const [ratings, setRatings] = useState<RatingWithProfile[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [averageRating, setAverageRating] = useState<number | null>(null);
+  const [loading, setLoading] = useState(false);
   const { user } = useUser();
 
   // Fetch ratings for a specific user (as the rated person)
@@ -46,7 +48,19 @@ export function useRatings() {
         .order("created_at", { ascending: false });
 
       if (error) throw error;
-      setRatings(data as RatingWithProfile[]);
+
+      const typedData = data as RatingWithProfile[];
+      setRatings(typedData);
+
+      // ✅ Compute average
+      if (typedData.length > 0) {
+        const avg =
+          typedData.reduce((sum, r) => sum + r.rating, 0) /
+          typedData.length;
+        setAverageRating(Number(avg.toFixed(1)));
+      } else {
+        setAverageRating(null);
+      }
     } catch (error: any) {
       toast.error("Error fetching ratings: " + error.message);
     } finally {
@@ -59,6 +73,8 @@ export function useRatings() {
     if (!user) return null;
 
     try {
+      setLoading(true);
+
       const { data, error } = await supabaseClient
         .from("ratings")
         .select("id")
@@ -72,6 +88,8 @@ export function useRatings() {
     } catch (error: any) {
       console.error("Error checking existing rating:", error);
       return null;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,6 +106,8 @@ export function useRatings() {
     }
 
     try {
+      setLoading(true);
+
       const { data, error } = await supabaseClient
         .from("ratings")
         .insert({
@@ -107,11 +127,14 @@ export function useRatings() {
     } catch (error: any) {
       toast.error("Failed to submit rating: " + error.message);
       return { error };
+    } finally {
+      setLoading(false);
     }
   };
 
   return {
     ratings,
+    averageRating,
     loading,
     fetchUserRatings,
     checkExistingRating,

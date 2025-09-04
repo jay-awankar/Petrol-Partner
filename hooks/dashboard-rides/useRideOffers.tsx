@@ -85,7 +85,8 @@ export function useRideOffers() {
         .from("profile_ratings")
         .select("profile_id, avg_rating")
         .in("profile_id", driverIds);
-
+        console.log("Ride IDs for bookings fetch:", driverIds);
+      console.log("Fetched ratings:", ratings);
       // 4️⃣ Merge bookings and ratings
       const ridesWithInfo = ridesData.map(ride => {
         const totalBookedSeats = bookings
