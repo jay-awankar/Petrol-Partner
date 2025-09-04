@@ -8,14 +8,9 @@ import {
   AnimatePresence,
   MotionValue,
 } from "framer-motion";
-import {
-  Children,
-  cloneElement,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { Children, cloneElement, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
+import clsx from "clsx";
 
 type SpringCfg = { mass?: number; stiffness?: number; damping?: number };
 
@@ -49,6 +44,7 @@ function DockItem({
   baseItemSize,
   active = false,
   position,
+  label,
 }: {
   children: React.ReactElement | React.ReactElement[];
   className?: string;
@@ -59,18 +55,17 @@ function DockItem({
   magnification: number;
   baseItemSize: number;
   active?: boolean;
-  position?: string;
+  position?: DockProps["position"];
+  label: string;
 }) {
   const ref = useRef<HTMLDivElement | null>(null);
   const isHovered = useMotionValue(0);
 
   const mouseDistance = useTransform(mouseX, (val) => {
-    const rect =
-      ref.current?.getBoundingClientRect() ?? ({ x: 0 } as DOMRect);
+    const rect = ref.current?.getBoundingClientRect() ?? ({ x: 0 } as DOMRect);
     return val - rect.x - baseItemSize / 2;
   });
 
-  // Magnify under the pointer
   const targetSize = useTransform(
     mouseDistance,
     [-distance, 0, distance],
@@ -78,34 +73,29 @@ function DockItem({
   );
   const size = useSpring(targetSize, spring);
 
+  const lift = useTransform(
+    size,
+    [baseItemSize, magnification],
+    [0, position === "bottom" ? -5 : 5]
+  );
+
   return (
     <motion.div
       ref={ref}
-      style={{
-        width: size,
-        height: size,
-        // subtle pop + lift when active
-        scale: active ? 1 : 1,
-        // lift up or down
-        // y: position === "bottom" ? (active ? -5: 0): (active ? 5 : 0),
-      }}
+      style={{ width: size, height: size, y: lift }}
       onHoverStart={() => isHovered.set(1)}
       onHoverEnd={() => isHovered.set(0)}
       onFocus={() => isHovered.set(1)}
       onBlur={() => isHovered.set(0)}
       onClick={onClick}
-      className={[
-        "dock-item",
-        active ? "dock-active" : "",
-        className,
-      ].join(" ")}
+      className={clsx("dock-item", active && "dock-active", className)}
       tabIndex={0}
-      role="button"
-      aria-haspopup="true"
+      role="link"
       aria-current={active ? "page" : undefined}
+      aria-label={label}
     >
       {Children.map(children, (child) =>
-        cloneElement(child as any, { isHovered })
+        cloneElement(child as any, { isHovered, position })
       )}
     </motion.div>
   );
@@ -160,7 +150,7 @@ export default function Dock({
   const router = useRouter();
 
   return (
-    <motion.div  className="dock-outer">
+    <motion.div className="dock-outer">
       <motion.div
         // pointer events work on desktop; mobile will just tap
         onMouseMove={(e) => {
@@ -171,7 +161,12 @@ export default function Dock({
           isHovered.set(0);
           mouseX.set(Infinity);
         }}
-        className={[position === "top" ? "dock-top dock-panel-top" : "dock-bottom dock-panel-bottom", className].join(" ")}
+        className={[
+          position === "top"
+            ? "dock-top dock-panel-top"
+            : "dock-bottom dock-panel-bottom",
+          className,
+        ].join(" ")}
         style={{ height: panelHeight }}
         role="toolbar"
         aria-label="Application dock"
@@ -181,7 +176,7 @@ export default function Dock({
             pathname === item.href ||
             (pathname?.startsWith(item.href + "/") ?? false);
 
-        return (
+          return (
             <DockItem
               key={index}
               onClick={() => router.push(item.href)}
@@ -193,6 +188,7 @@ export default function Dock({
               baseItemSize={baseItemSize}
               active={isActive}
               position={position}
+              label={item.label}
             >
               <DockIcon>{item.icon}</DockIcon>
               <DockLabel>{item.label}</DockLabel>
