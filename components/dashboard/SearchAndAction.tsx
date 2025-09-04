@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Button } from './ui/button'
 import { HandHeart, Plus, Search } from 'lucide-react'
-import { Input } from './ui/input';
+import { Input } from '../ui/input';
+import { Button } from '../ui/button';
 
 const SearchAndAction = () => {
 
