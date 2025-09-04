@@ -11,7 +11,7 @@ interface RatingsSectionProps {
 }
 
 export function RatingsSection({ userId, rideId }: RatingsSectionProps) {
-  const { ratings, loading, fetchUserRatings, checkExistingRating, submitRating } =
+  const { ratings, averageRating, loading, fetchUserRatings, checkExistingRating, submitRating } =
     useRatings();
   const { user } = useUser();
 
@@ -55,11 +55,6 @@ export function RatingsSection({ userId, rideId }: RatingsSectionProps) {
       setComment("");
     }
   };
-
-  const averageRating =
-    ratings.length > 0
-      ? (ratings.reduce((sum, r) => sum + r.rating, 0) / ratings.length).toFixed(1)
-      : "No ratings yet";
 
   return (
     <div className="p-4 border rounded-lg shadow-sm bg-white">

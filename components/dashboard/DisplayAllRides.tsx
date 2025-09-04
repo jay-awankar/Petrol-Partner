@@ -10,6 +10,7 @@ import { redirect } from "next/navigation";
 import RideRequestCard from "./RideRequestCard";
 import RideBookedCard from "./RideBookedCard";
 import RideOfferCard from "./RideOfferCard";
+import { cn } from "@/lib/utils";
 
 // --- Empty State Component ---
 const EmptyState = ({
@@ -82,17 +83,22 @@ const DisplayAllRides = () => {
     [bookedRides, searchQuery]
   );
   
+  // console.log("User:", user);
+  // console.log("Rides:", rides);
+  // console.log("Booked Rides:", bookedRides);
+  // console.log("Ride Requests:", rideRequests);
+
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
       <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="offers">
+        <TabsTrigger value="offers" className={cn("cursor-pointer", activeTab === "offers" ? "bg-primary-foreground! text-primary-foreground" : "")}>
           Ride Offers ({filteredRidesOffers.length})
         </TabsTrigger>
-        <TabsTrigger value="requests">
+        <TabsTrigger value="requests" className={cn("cursor-pointer", activeTab === "requests" ? "bg-primary-foreground! text-primary-foreground" : "")}>
           Ride Requests ({filteredRideRequests.length})
         </TabsTrigger>
-        <TabsTrigger value="booked">
+        <TabsTrigger value="booked" className={cn("cursor-pointer", activeTab === "booked" ? "bg-primary-foreground! text-primary-foreground" : "")}>
           Booked Rides ({filteredRideBookings.length})
         </TabsTrigger>
       </TabsList>
@@ -138,28 +144,53 @@ const DisplayAllRides = () => {
       </TabsContent>
 
       {/* --- Booked Rides --- */}
-      <TabsContent value="booked" className="space-y-4">
+      <TabsContent value="booked" className="space-y-8">
         {bookedRidesLoading ? (
           <p className="text-center text-muted-foreground">
             Loading booked rides...
           </p>
-        ) : filteredRideBookings.length === 0 ? (
+        ) : bookedRides.length === 0 ? (
           <EmptyState
             icon={CheckCircle}
             title="No booked rides"
             description="Your booked rides will appear here"
           />
         ) : (
-          (filteredRideBookings || []).map((b) => (
-            <RideBookedCard
-              key={b.id}
-              booking={b}
-              onMessage={() => redirect("/chat")}
-              onTrack={() => {}}
-              onRate={() => {}}
-              onDetails={() => {}}
-            />
-          ))
+          <>
+            {/* Rides where I’m the passenger */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">As Passenger</h3>
+              {filteredRideBookings
+                .filter((b) => b.passenger_id === user?.id || b.ride_request?.passenger?.id === user?.id)
+                .map((b) => (
+                  <RideBookedCard
+                    key={b.id}
+                    booking={b}
+                    onMessage={() => redirect("/chat")}
+                    onTrack={() => {}}
+                    onRate={() => {}}
+                    onDetails={() => {}}
+                  />
+                ))}
+            </div>
+
+            {/* Rides where I’m the driver */}
+            <div>
+              <h3 className="text-lg font-semibold mb-3">As Driver</h3>
+              {filteredRideBookings
+                .filter((b) => b.ride?.driver?.id === user?.id)
+                .map((b) => (
+                  <RideBookedCard
+                    key={b.id}
+                    booking={b}
+                    onMessage={() => redirect("/chat")}
+                    onTrack={() => {}}
+                    onRate={() => {}}
+                    onDetails={() => {}}
+                  />
+                ))}
+            </div>
+          </>
         )}
       </TabsContent>
     </Tabs>

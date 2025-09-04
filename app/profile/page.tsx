@@ -21,6 +21,7 @@ import { useProfile } from '@/hooks/useProfile';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { RatingsSection } from '@/components/RatingsSection';
+import { useRatings } from '@/hooks/useRatings';
 
 // Type for Profile based on your schema
 interface Profile {
@@ -45,7 +46,8 @@ const Profile = () => {
     cancelledRides: 0
   });
 
-  const { profile, loading, updateProfile, fetchUserStats } = useProfile();
+  const { profile, loading: loadingProfile, updateProfile, fetchUserStats } = useProfile();
+  const { loading: loadingRatings, averageRating, fetchUserRatings } = useRatings();
   const { user } = useUser();
 
   useEffect(() => {
@@ -57,7 +59,10 @@ const Profile = () => {
   }, [fetchUserStats]);
 
   useEffect(() => {
-    if (profile) setEditedProfile(profile);
+    if (profile) {
+      setEditedProfile(profile)
+      fetchUserRatings(profile.id);
+    };
   }, [profile]);
 
   const handleSave = async () => {
@@ -92,8 +97,18 @@ const Profile = () => {
     );
   }
 
-  const displayRating = editedProfile.rating ? editedProfile.rating.toFixed(1) : "0.0";
   const displayEmail = user?.primaryEmailAddress?.emailAddress || editedProfile.email || "";
+
+  if (loadingProfile) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Card className="p-8 text-center">
+          <h3 className="font-semibold mb-2">Loading Profile...</h3>
+          <p className="text-muted-foreground">Please wait while we fetch your profile information</p>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -151,7 +166,7 @@ const Profile = () => {
                 <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-3">
                   <div className="flex items-center space-x-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <span>{displayRating}</span>
+                    <p>{loadingRatings ? "0.0" : averageRating}</p>
                   </div>
                   <span>•</span>
                   <span>{userStats.totalRides} rides</span>
@@ -169,14 +184,14 @@ const Profile = () => {
         <div className="grid grid-cols-2 gap-4">
           <Card className="hover:shadow-soft hover:scale-105 transition-all duration-300 cursor-pointer">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary animate-pulse">{userStats.completedRides}</div>
+              <div className="text-2xl font-bold text-primary animate-pulse">{loadingProfile ? "..." : userStats.completedRides}</div>
               <p className="text-sm text-muted-foreground">Completed Rides</p>
             </CardContent>
           </Card>
           
           <Card className="hover:shadow-soft hover:scale-105 transition-all duration-300 cursor-pointer">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary animate-pulse">{displayRating}</div>
+              <div className="text-2xl font-bold text-primary animate-pulse">{loadingRatings ? "..." : averageRating}</div>
               <p className="text-sm text-muted-foreground">Average Rating</p>
             </CardContent>
           </Card>

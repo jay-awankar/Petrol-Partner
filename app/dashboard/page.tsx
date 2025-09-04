@@ -31,7 +31,7 @@ const Page = () => {
     <div className="page min-h-screen bg-background container mx-auto p-4 space-y-6">
       <DashboardStats />
       <ActiveRide />
-      <MapComponent className="h-64" />
+      {/* <MapComponent className="h-64" /> */}
       <SearchAndAction />
       <DisplayAllRides />
     </div>

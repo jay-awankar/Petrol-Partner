@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabaseClient } from '@/lib/supabase/client';
 import { useUser } from '@clerk/nextjs';
+import { set } from 'date-fns';
 
 
 export interface UserProfile {
@@ -12,9 +13,7 @@ export interface UserProfile {
   phone?: string;
   avatar_url?: string;
   bio?: string;
-  rating: number;
-  total_ratings: number;
-  verification_status: 'pending' | 'verified' | 'rejected';
+  verification_status?: 'pending' | 'verified' | 'rejected';
   created_at: string;
   updated_at: string;
 }
@@ -28,7 +27,7 @@ export interface ProfileUpdateData {
 
 export function useProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const { user } = useUser(); // Clerk user
 
   // 🔹 Fetch profile
@@ -37,14 +36,15 @@ export function useProfile() {
 
     try {
       setLoading(true);
-      const { data, error } = await supabaseClient
+      const { data: profileData, error } = await supabaseClient
         .from('profiles')
-        .select('*')
+        .select("*")
         .eq('clerk_id', user.id) // ✅ using clerk_id
         .single();
-
+      
       if (error) throw error;
-      setProfile(data as UserProfile);
+      setProfile(profileData as UserProfile);
+
     } catch (error: any) {
       toast.error('Error fetching profile', {
         description: error.message,
@@ -64,6 +64,7 @@ export function useProfile() {
     }
 
     try {
+      setLoading(true);
       const { data, error } = await supabaseClient
         .from('profiles')
         .update({
@@ -87,6 +88,8 @@ export function useProfile() {
         description: error.message,
       });
       return { error };
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -95,6 +98,8 @@ export function useProfile() {
     if (!profile) return null;
 
     try {
+      // setLoading(true);
+
       const [driverRides, passengerBookings] = await Promise.all([
         supabaseClient.from('rides').select('id, status').eq('driver_id', profile.id),
         supabaseClient.from('bookings').select('id, status').eq('passenger_id', profile.id),
@@ -116,6 +121,8 @@ export function useProfile() {
     } catch (error) {
       console.error('Error fetching user stats:', error);
       return null;
+    } finally {
+      // setLoading(false);
     }
   };
 

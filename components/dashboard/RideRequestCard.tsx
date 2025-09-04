@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { Badge, Clock, MapPin, MessageCircle, Users } from 'lucide-react';
 import { redirect } from 'next/navigation';
 import { format } from 'date-fns';
-import Avatar from './Avatar';
+import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 
 const RideRequestCard = ({ request, onRespond }: { request: any; onRespond: () => void }) => (
     <motion.div
@@ -18,11 +18,13 @@ const RideRequestCard = ({ request, onRespond }: { request: any; onRespond: () =
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center space-x-3">
-              <Avatar
-                name={request.passenger?.full_name}
-                bgClass="bg-gradient-to-br from-secondary to-secondary/80"
-                onClick={() => redirect(`/profile/${request.passenger?.id}`)}
-              />
+              <Avatar className="w-12 h-12 cursor-pointer">
+                <AvatarImage src={request.passenger.avatar_url}
+                onClick={() => redirect(`/profile/${request.passenger?.id}`)} />
+                <AvatarFallback className="bg-gradient-primary text-white text-2xl">
+                  {request.passenger.full_name?.split(' ').map(n => n[0]).join('')}
+                </AvatarFallback>
+              </Avatar>
               <div>
                 <h3 className="font-semibold">{request.passenger?.full_name || 'Unknown Passenger'}</h3>
                 <div className="flex items-center space-x-2 text-sm text-muted-foreground">

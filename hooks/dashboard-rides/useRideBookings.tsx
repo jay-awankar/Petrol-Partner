@@ -72,34 +72,25 @@ export function useRideBookings() {
         .eq("clerk_id", user.id)
         .single();
       if (profileError || !profile) throw new Error("Profile not found");
+      
 
       // 2️⃣ Fetch bookings + rides + ride_requests + driver/passenger
       const { data, error } = await supabaseClient
-        .from("bookings")
-        .select(`
+      .from("bookings")
+      .select(`
+        *,
+        ride:rides (
           *,
-          ride:rides (
-            *,
-            driver:profiles (
-              id,
-              full_name,
-              avatar_url,
-              college,
-              phone
-            )
-          ),
-          ride_request:ride_requests (
-            *,
-            passenger:profiles (
-              id,
-              full_name,
-              avatar_url,
-              college,
-              phone
-            )
-          )
-        `)
-        .order("created_at", { ascending: false });
+          driver:profiles(id, full_name, avatar_url, college)
+        ),
+        ride_request:ride_requests (
+          *,
+          passenger:profiles(id, full_name, avatar_url, college, phone)
+        )
+      `)
+      .or(`passenger_id.eq.${profile.id},driver_id.eq.${profile.id}`)
+      .order("created_at", { ascending: false });
+
 
       if (error) throw error;
       setBookedRides(data || []);
