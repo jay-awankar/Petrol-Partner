@@ -124,9 +124,17 @@ export function useRideOffers() {
     }
 
     try {
+      const { data: profile } = await supabaseClient
+        .from("profiles")
+        .select("id")
+        .eq("clerk_id", user.id)
+        .single();
+
+      if (!profile) throw new Error("Profile not found");
+
       const { data, error } = await supabaseClient
         .from("rides")
-        .insert([{ ...rideData, driver_id: user.id }])
+        .insert([{ ...rideData, driver_id: profile.id }])
         .select()
         .single();
 

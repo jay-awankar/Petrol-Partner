@@ -11,6 +11,7 @@ import RideRequestCard from "./RideRequestCard";
 import RideBookedCard from "./RideBookedCard";
 import RideOfferCard from "./RideOfferCard";
 import { cn } from "@/lib/utils";
+import SearchAndAction from "./SearchAndAction";
 
 // --- Empty State Component ---
 const EmptyState = ({
@@ -35,16 +36,12 @@ const EmptyState = ({
 const DisplayAllRides = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("offers");
-
-  const { rides, loading: ridesLoading, bookRide, completeRide } = useRideOffers();
-  const {
-    bookedRides,
-    loading: bookedRidesLoading,
-    checkIfRated,
-  } = useRideBookings();
+  const { rides, loading: ridesLoading, bookRide } = useRideOffers();
+  const { bookedRides, loading: bookedRidesLoading } = useRideBookings();
   const { rideRequests, loading: requestsLoading } = useRideRequests();
   const { user } = useUser();
 
+  // --- Filtering Logic ---
   const filteredRidesOffers = useMemo(() => {
     if (!rides) return [];
     return rides.filter((ride) => {
@@ -82,118 +79,129 @@ const DisplayAllRides = () => {
       ),
     [bookedRides, searchQuery]
   );
-  
-  // console.log("User:", user);
-  // console.log("Rides:", rides);
-  // console.log("Booked Rides:", bookedRides);
-  // console.log("Ride Requests:", rideRequests);
-
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-      <TabsList className="grid w-full grid-cols-3">
-        <TabsTrigger value="offers" className={cn("cursor-pointer", activeTab === "offers" ? "bg-primary-foreground! text-primary-foreground" : "")}>
-          Ride Offers ({filteredRidesOffers.length})
-        </TabsTrigger>
-        <TabsTrigger value="requests" className={cn("cursor-pointer", activeTab === "requests" ? "bg-primary-foreground! text-primary-foreground" : "")}>
-          Ride Requests ({filteredRideRequests.length})
-        </TabsTrigger>
-        <TabsTrigger value="booked" className={cn("cursor-pointer", activeTab === "booked" ? "bg-primary-foreground! text-primary-foreground" : "")}>
-          Booked Rides ({filteredRideBookings.length})
-        </TabsTrigger>
-      </TabsList>
+    <div className="space-y-6">
+      {/* 🔍 Search + Actions */}
+      <SearchAndAction
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+      />
 
-      {/* Offered Rides */}
-      <TabsContent value="offers" className="space-y-4">
-        {ridesLoading ? (
-          <p className="text-center text-muted-foreground">Loading rides...</p>
-        ) : filteredRidesOffers.length === 0 ? (
-          <EmptyState
-            icon={Users}
-            title="No rides available"
-            description="Be the first to offer a ride!"
-          />
-        ) : (
-          (filteredRidesOffers || []).map((ride) => (
-            <RideOfferCard
-              key={ride.id}
-              ride={ride}
-              onBook={() => bookRide(ride.id, 1)}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger
+            value="offers"
+            className={cn("cursor-pointer", activeTab === "offers" ? "bg-primary-foreground! text-primary-foreground" : "")}
+          >
+            Ride Offers ({filteredRidesOffers.length})
+          </TabsTrigger>
+          <TabsTrigger
+            value="requests"
+            className={cn("cursor-pointer", activeTab === "requests" ? "bg-primary-foreground! text-primary-foreground" : "")}
+          >
+            Ride Requests ({filteredRideRequests.length})
+          </TabsTrigger>
+          <TabsTrigger
+            value="booked"
+            className={cn("cursor-pointer", activeTab === "booked" ? "bg-primary-foreground! text-primary-foreground" : "")}
+          >
+            Booked Rides ({filteredRideBookings.length})
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Offered Rides */}
+        <TabsContent value="offers" className="space-y-4">
+          {ridesLoading ? (
+            <p className="text-center text-muted-foreground">Loading rides...</p>
+          ) : filteredRidesOffers.length === 0 ? (
+            <EmptyState
+              icon={Users}
+              title="No rides available"
+              description="Be the first to offer a ride!"
             />
-          ))
-        )}
-      </TabsContent>
+          ) : (
+            filteredRidesOffers.map((ride) => (
+              <RideOfferCard
+                key={ride.id}
+                ride={ride}
+                onBook={() => bookRide(ride.id, 1)}
+              />
+            ))
+          )}
+        </TabsContent>
 
-      {/* --- Requested Rides --- */}
-      <TabsContent value="requests" className="space-y-4">
-        {requestsLoading ? (
-          <p className="text-center text-muted-foreground">
-            Loading ride requests...
-          </p>
-        ) : filteredRideRequests.length === 0 ? (
-          <EmptyState
-            icon={HandHeart}
-            title="No ride requests"
-            description="Be the first to request a ride!"
-          />
-        ) : (
-          (filteredRideRequests || []).map((req) => (
-            <RideRequestCard key={req.id} request={req} onRespond={() => {}} />
-          ))
-        )}
-      </TabsContent>
+        {/* Requested Rides */}
+        <TabsContent value="requests" className="space-y-4">
+          {requestsLoading ? (
+            <p className="text-center text-muted-foreground">Loading ride requests...</p>
+          ) : filteredRideRequests.length === 0 ? (
+            <EmptyState
+              icon={HandHeart}
+              title="No ride requests"
+              description="Be the first to request a ride!"
+            />
+          ) : (
+            filteredRideRequests.map((req) => (
+              <RideRequestCard key={req.id} request={req} onRespond={() => {}} />
+            ))
+          )}
+        </TabsContent>
 
-      {/* --- Booked Rides --- */}
-      <TabsContent value="booked" className="space-y-8">
-        {bookedRidesLoading ? (
-          <p className="text-center text-muted-foreground">
-            Loading booked rides...
-          </p>
-        ) : bookedRides.length === 0 ? (
-          <EmptyState
-            icon={CheckCircle}
-            title="No booked rides"
-            description="Your booked rides will appear here"
-          />
-        ) : (
-          <>
-            {/* Rides where I’m the passenger */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">As Passenger</h3>
-              {filteredRideBookings
-                .filter((b) => b.passenger_id === user?.id || b.ride_request?.passenger?.id === user?.id)
-                .map((b) => (
-                  <RideBookedCard
-                    key={b.id}
-                    booking={b}
-                    onMessage={() => redirect("/chat")}
-                    onTrack={() => {}}
-                    onRate={() => {}}
-                    onDetails={() => {}}
-                  />
-                ))}
-            </div>
+        {/* Booked Rides */}
+        <TabsContent value="booked" className="space-y-8">
+          {bookedRidesLoading ? (
+            <p className="text-center text-muted-foreground">Loading booked rides...</p>
+          ) : bookedRides.length === 0 ? (
+            <EmptyState
+              icon={CheckCircle}
+              title="No booked rides"
+              description="Your booked rides will appear here"
+            />
+          ) : (
+            <>
+              {/* As Passenger */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">As Passenger</h3>
+                {filteredRideBookings
+                  .filter(
+                    (b) =>
+                      b.passenger_id === user?.id ||
+                      b.ride_request?.passenger?.id === user?.id
+                  )
+                  .map((b) => (
+                    <RideBookedCard
+                      key={b.id}
+                      booking={b}
+                      onMessage={() => redirect("/chat")}
+                      onTrack={() => {}}
+                      onRate={() => {}}
+                      onDetails={() => {}}
+                    />
+                  ))}
+              </div>
 
-            {/* Rides where I’m the driver */}
-            <div>
-              <h3 className="text-lg font-semibold mb-3">As Driver</h3>
-              {filteredRideBookings
-                .filter((b) => b.ride?.driver?.id === user?.id)
-                .map((b) => (
-                  <RideBookedCard
-                    key={b.id}
-                    booking={b}
-                    onMessage={() => redirect("/chat")}
-                    onTrack={() => {}}
-                    onRate={() => {}}
-                    onDetails={() => {}}
-                  />
-                ))}
-            </div>
-          </>
-        )}
-      </TabsContent>
-    </Tabs>
+              {/* As Driver */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">As Driver</h3>
+                {filteredRideBookings
+                  .filter((b) => b.ride?.driver?.id === user?.id)
+                  .map((b) => (
+                    <RideBookedCard
+                      key={b.id}
+                      booking={b}
+                      onMessage={() => redirect("/chat")}
+                      onTrack={() => {}}
+                      onRate={() => {}}
+                      onDetails={() => {}}
+                    />
+                  ))}
+              </div>
+            </>
+          )}
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 };
 
