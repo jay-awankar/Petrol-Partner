@@ -131,7 +131,7 @@ export function useRideRequests() {
       const { data: profile } = await supabaseClient
         .from("profiles")
         .select("id")
-        .eq("user_id", user.id)
+        .eq("clerk_id", user.id)
         .single();
 
       if (!profile) throw new Error("Profile not found");

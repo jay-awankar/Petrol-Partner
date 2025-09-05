@@ -6,7 +6,6 @@ import { useEffect } from "react";
 
 import DashboardStats from "@/components/dashboard/DashboardStats";
 import ActiveRide from "@/components/ActiveRide";
-import SearchAndAction from "@/components/dashboard/SearchAndAction";
 import MapComponent from "@/components/dashboard/Map";
 import DisplayAllRides from "@/components/dashboard/DisplayAllRides";
 
@@ -32,7 +31,6 @@ const Page = () => {
       <DashboardStats />
       <ActiveRide />
       {/* <MapComponent className="h-64" /> */}
-      <SearchAndAction />
       <DisplayAllRides />
     </div>
   );
