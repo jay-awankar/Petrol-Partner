@@ -33,17 +33,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// --- Types ---
-interface CreateRideDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-type RideFormState = CreateRideData & {
-  date?: Date;
-  time: string;
-};
-
 // --- Initial State ---
 const initialForm: RideFormState = {
   from_location: "",

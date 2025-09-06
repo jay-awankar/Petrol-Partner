@@ -5,11 +5,6 @@ import { useRatings, RatingWithProfile } from "@/hooks/useRatings";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
 
-interface RatingsSectionProps {
-  userId: string; // profile being viewed (rated user)
-  rideId?: string; // optional: if rating is linked to a specific ride
-}
-
 export function RatingsSection({ userId, rideId }: RatingsSectionProps) {
   const { ratings, averageRating, loading, fetchUserRatings, checkExistingRating, submitRating } =
     useRatings();

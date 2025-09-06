@@ -1,29 +1,9 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabaseClient } from '@/lib/supabase/client';
-import { useUser } from '@clerk/nextjs';
-import { set } from 'date-fns';
-
-
-export interface UserProfile {
-  id: string; // primary key in Supabase
-  clerk_id: string; // Clerk user ID
-  full_name: string;
-  college: string;
-  phone?: string;
-  avatar_url?: string;
-  bio?: string;
-  verification_status?: 'pending' | 'verified' | 'rejected';
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ProfileUpdateData {
-  full_name?: string;
-  college?: string;
-  phone?: string;
-  bio?: string;
-}
+import { useUser } from '@clerk/nextjs'
 
 export function useProfile() {
   const [profile, setProfile] = useState<UserProfile | null>(null);

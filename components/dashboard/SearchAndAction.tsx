@@ -6,10 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { RideOfferDialog } from '@/components/dashboard/dialog/RideOfferDialog';
 import { RideRequestDialog } from '@/components/dashboard/dialog/RideRequestDialog';
-interface SearchAndActionProps {
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-}
 
 const SearchAndAction = ({ searchQuery, onSearchChange }: SearchAndActionProps) => {
   const [offerRideOpen, setOfferRideOpen] = useState(false);

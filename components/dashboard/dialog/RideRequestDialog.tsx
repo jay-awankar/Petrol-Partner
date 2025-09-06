@@ -9,11 +9,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { CalendarIcon, MapPin, Users, IndianRupee } from 'lucide-react';
 import { useRideRequests, CreateRideRequestData } from '@/hooks/dashboard-rides/useRideRequests';
 
-interface RequestRideDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
 export const RideRequestDialog = ({ open, onOpenChange }: RequestRideDialogProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<CreateRideRequestData>({

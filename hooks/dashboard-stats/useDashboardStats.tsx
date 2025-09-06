@@ -3,16 +3,6 @@
 import { useAuth } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 
-export interface DashboardStats {
-  totalUsers: number;
-  totalBookedRides: number;
-  dailyRides: number;
-  totalActiveRides: number;
-  totalRideRequests: number;
-  totalRideOffers: number; 
-  totalRevenue: number;
-}
-
 export const useDashboardStats = () => {
   const { getToken } = useAuth();
   const [stats, setStats] = useState<DashboardStats>();
