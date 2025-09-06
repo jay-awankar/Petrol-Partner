@@ -5,24 +5,6 @@ import { supabaseClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { fetchProfileId } from '@/lib/fetchProfileId';
 
-export interface WalletTransaction {
-  id: string;
-  user_id: string; // profiles.id
-  booking_id?: string;
-  amount: number;
-  transaction_type: 'credit' | 'debit';
-  description: string;
-  status: 'pending' | 'completed' | 'failed';
-  created_at: string;
-}
-
-export interface UserWallet {
-  id: string;
-  user_id: string; // profiles.id
-  balance: number;
-  updated_at: string;
-}
-
 export function useWallet() {
   const [wallet, setWallet] = useState<UserWallet | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);

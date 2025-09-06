@@ -4,24 +4,6 @@ import { useState } from "react";
 import { supabaseClient } from "@/lib/supabase/client";
 import { useUser } from "@clerk/nextjs";
 import { toast } from "sonner";
-import { set } from "date-fns";
-
-export interface Rating {
-  id: string;
-  rater_id: string;
-  rated_id: string;
-  ride_id: string;
-  rating: number;
-  comment?: string;
-  created_at: string;
-}
-
-export interface RatingWithProfile extends Rating {
-  rater_profile?: {
-    full_name: string;
-    avatar_url?: string;
-  };
-}
 
 export function useRatings() {
   const [ratings, setRatings] = useState<RatingWithProfile[]>([]);
@@ -55,11 +37,10 @@ export function useRatings() {
       // ✅ Compute average
       if (typedData.length > 0) {
         const avg =
-          typedData.reduce((sum, r) => sum + r.rating, 0) /
-          typedData.length;
+          typedData.reduce((sum, r) => sum + r.rating, 0) / typedData.length;
         setAverageRating(Number(avg.toFixed(1)));
       } else {
-        setAverageRating(null);
+        setAverageRating(0.0);
       }
     } catch (error: any) {
       toast.error("Error fetching ratings: " + error.message);
@@ -75,11 +56,20 @@ export function useRatings() {
     try {
       setLoading(true);
 
+      const { data: profile, error: profileError } = await supabaseClient
+        .from("profiles")
+        .select("id")
+        .eq("clerk_id", user.id) // ✅ using clerk_id
+        .single();
+
+      if (profileError) throw profileError;
+
       const { data, error } = await supabaseClient
         .from("ratings")
         .select("id")
         .eq("ride_id", rideId)
-        .eq("rater_id", user.id)
+        // .or(`passenger_id.eq.${profile.id},driver_id.eq.${profile.id}`)
+        .eq("rater_id", profile.id)
         .eq("rated_id", driverId)
         .single();
 

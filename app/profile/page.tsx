@@ -23,20 +23,6 @@ import Link from 'next/link';
 import { RatingsSection } from '@/components/RatingsSection';
 import { useRatings } from '@/hooks/useRatings';
 
-// Type for Profile based on your schema
-interface Profile {
-  id: string;
-  full_name: string;
-  email?: string;
-  college?: string;
-  phone?: string;
-  bio?: string;
-  created_at: string;
-  verification_status?: 'verified' | 'pending' | 'rejected';
-  rating?: number;
-  avatar_url?: string;
-}
-
 const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedProfile, setEditedProfile] = useState<Profile | null>(null);
@@ -166,7 +152,7 @@ const Profile = () => {
                 <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-3">
                   <div className="flex items-center space-x-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <p>{loadingRatings ? "0.0" : averageRating}</p>
+                    <p>{loadingRatings ? "0.0" : averageRating ? null : 0.0}</p>
                   </div>
                   <span>•</span>
                   <span>{userStats.totalRides} rides</span>
@@ -191,7 +177,7 @@ const Profile = () => {
           
           <Card className="hover:shadow-soft hover:scale-105 transition-all duration-300 cursor-pointer">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary animate-pulse">{loadingRatings ? "..." : averageRating}</div>
+              <div className="text-2xl font-bold text-primary animate-pulse">{loadingRatings ? "..." : averageRating ? null : 0.0}</div>
               <p className="text-sm text-muted-foreground">Average Rating</p>
             </CardContent>
           </Card>

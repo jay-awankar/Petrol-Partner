@@ -5,55 +5,6 @@ import { supabaseClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useUser } from "@clerk/nextjs";
 
-export interface RideBooking {
-  id: string;
-  ride_id?: string;
-  ride_request_id?: string;
-  driver_id: string;
-  passenger_id: string;
-  seats_booked: number;
-  total_amount: number;
-  status: string;
-  created_at: string;
-  ride?: {
-    id: string;
-    driver_id: string;
-    from_location: string;
-    to_location: string;
-    departure_time: string;
-    price_per_seat: number;
-    description?: string;
-    status: string;
-    driver?: {
-      id: string;
-      full_name: string;
-      avatar_url?: string;
-      college: string;
-      phone: string;
-      avg_rating?: number;
-    };
-  };
-  ride_request?: {
-    id: string;
-    passenger_id: string;
-    from_location: string;
-    to_location: string;
-    preferred_departure_time: string;
-    requested_seats: number;
-    price_per_seat: number;
-    description?: string;
-    status: string;
-    passenger?: {
-      id: string;
-      full_name: string;
-      avatar_url?: string;
-      college: string;
-      phone: string;
-      avg_rating?: number;
-    };
-  };
-}
-
 export function useRideBookings() {
   const [bookedRides, setBookedRides] = useState<RideBooking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -94,9 +45,8 @@ export function useRideBookings() {
 
       if (error) throw error;
       setBookedRides(data || []);
-      console.log("Fetched booked rides:", data);
+
     } catch (err: any) {
-      console.error("Error fetching booked rides:", err);
       toast.error(`Error fetching booked rides: ${err.message}`);
       setBookedRides([]);
     } finally {

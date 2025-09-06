@@ -17,27 +17,6 @@ import {
 } from "react";
 import { usePathname, useRouter } from "next/navigation";
 
-type SpringCfg = { mass?: number; stiffness?: number; damping?: number };
-
-type DockItemSpec = {
-  href: string;
-  label: string;
-  icon: React.ReactNode;
-  className?: string;
-};
-
-type DockProps = {
-  items: DockItemSpec[];
-  className?: string;
-  spring?: SpringCfg;
-  magnification?: number;
-  distance?: number;
-  panelHeight?: number;
-  dockHeight?: number;
-  baseItemSize?: number;
-  position?: "top" | "bottom";
-};
-
 function DockItem({
   children,
   className = "",

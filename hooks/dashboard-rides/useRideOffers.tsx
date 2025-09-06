@@ -1,39 +1,9 @@
+'use client';
+
 import { useState, useEffect } from "react";
 import { supabaseClient } from "@/lib/supabase/client";
 import { toast } from "sonner";
 import { useUser } from "@clerk/nextjs";
-
-export interface Ride {
-  id: string;
-  driver_id: string;
-  from_location: string;
-  to_location: string;
-  departure_time: string;
-  available_seats: number;
-  price_per_seat: number;
-  description?: string;
-  status: "active" | "completed" | "cancelled";
-  created_at: string;
-  updated_at: string;
-  driver?: {
-    id: string;
-    full_name: string;
-    avatar_url: string;
-    rating: number;
-    college: string;
-    phone: string;
-  };
-  isAvailable?: boolean;
-}
-
-export interface CreateRideData {
-  from_location: string;
-  to_location: string;
-  departure_time: string;
-  available_seats: number;
-  price_per_seat: number;
-  description?: string;
-}
 
 export function useRideOffers() {
   const [rides, setRides] = useState<Ride[]>([]);
@@ -85,8 +55,7 @@ export function useRideOffers() {
         .from("profile_ratings")
         .select("profile_id, avg_rating")
         .in("profile_id", driverIds);
-        console.log("Ride IDs for bookings fetch:", driverIds);
-      console.log("Fetched ratings:", ratings);
+
       // 4️⃣ Merge bookings and ratings
       const ridesWithInfo = ridesData.map(ride => {
         const totalBookedSeats = bookings

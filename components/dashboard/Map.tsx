@@ -6,15 +6,6 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Locate } from 'lucide-react';
 
-interface MapProps {
-  className?: string;
-  rideId?: string;
-  showRoute?: boolean;
-  pickupLocation?: [number, number];
-  destinationLocation?: [number, number];
-  showLiveTracking?: boolean;
-}
-
 const Map: React.FC<MapProps> = ({ 
   className, 
   rideId, 

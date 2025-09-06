@@ -5,58 +5,6 @@ import { toast } from "sonner";
 import { supabaseClient } from "@/lib/supabase/client";
 import { useUser } from "@clerk/nextjs";
 
-export interface Ride {
-  id: string;
-  driver_id: string;
-  from_location: string;
-  to_location: string;
-  departure_time: string;
-  available_seats: number;
-  price_per_seat: number;
-  description?: string;
-  status: string;
-  driver?: {
-    id: string;
-    full_name: string;
-    avatar_url?: string;
-    college: string;
-    phone: string;
-  };
-}
-
-export interface RideRequest {
-  id: string;
-  passenger_id: string;
-  from_location: string;
-  to_location: string;
-  preferred_departure_time: string;
-  requested_seats: number;
-  price_per_seat: number;
-  description?: string;
-  status: string;
-  created_at: string;
-  updated_at: string;
-  passenger?: {
-    id: string;
-    full_name: string;
-    avatar_url?: string;
-    college: string;
-    phone: string;
-    avg_rating?: number;
-  };
-  ride?: Ride;
-  seatsAvailable?: boolean;
-}
-
-export interface CreateRideRequestData {
-  from_location: string;
-  to_location: string;
-  preferred_departure_time: string;
-  requested_seats: number;
-  price_per_seat: number;
-  description?: string;
-}
-
 export function useRideRequests() {
   const [rideRequests, setRideRequests] = useState<RideRequest[]>([]);
   const [loading, setLoading] = useState(true);
