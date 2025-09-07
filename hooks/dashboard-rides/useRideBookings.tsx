@@ -23,6 +23,7 @@ export function useRideBookings() {
         .eq("clerk_id", user.id)
         .single();
       if (profileError || !profile) throw new Error("Profile not found");
+      console.log("User profile ID:", profile.id);
       
 
       // 2️⃣ Fetch bookings + rides + ride_requests + driver/passenger
@@ -32,17 +33,17 @@ export function useRideBookings() {
         *,
         ride:rides (
           *,
-          driver:profiles(id, full_name, avatar_url, college)
+          driver:profiles(id, full_name, avatar_url, college, phone)
         ),
         ride_request:ride_requests (
           *,
           passenger:profiles(id, full_name, avatar_url, college, phone)
         )
       `)
+      // .eq("driver_id", profile.id)
       .or(`passenger_id.eq.${profile.id},driver_id.eq.${profile.id}`)
       .order("created_at", { ascending: false });
-
-
+        console.log("Fetched bookings:", data);
       if (error) throw error;
       setBookedRides(data || []);
 

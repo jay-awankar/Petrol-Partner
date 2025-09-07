@@ -43,7 +43,7 @@ export function useRideRequests() {
         .from("bookings")
         .select("ride_request_id, seats_booked")
         .in("ride_request_id", requestIds)
-        .eq("status", "pending"); // consider pending bookings
+        .eq("status", "active"); // consider pending bookings
 
       // 4️⃣ Merge everything
       const mergedRequests: RideRequest[] = requestsData.map((req: any) => {

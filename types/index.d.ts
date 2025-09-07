@@ -67,7 +67,7 @@ interface RideBooking {
     driver_id: string;
     passenger_id: string;
     seats_booked: number;
-    total_amount: number;
+    total_price: number;
     status: string;
     created_at: string;
     ride?: {
@@ -85,7 +85,7 @@ interface RideBooking {
         avatar_url?: string;
         college: string;
         phone: string;
-        avg_rating?: number;
+        // avg_rating?: number;
       };
     };
     ride_request?: {
@@ -104,7 +104,7 @@ interface RideBooking {
         avatar_url?: string;
         college: string;
         phone: string;
-        avg_rating?: number;
+        // avg_rating?: number;
       };
     };
   }
