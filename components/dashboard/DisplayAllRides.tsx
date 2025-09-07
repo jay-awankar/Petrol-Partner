@@ -12,6 +12,7 @@ import RideBookedCard from "./RideBookedCard";
 import RideOfferCard from "./RideOfferCard";
 import { cn } from "@/lib/utils";
 import SearchAndAction from "./SearchAndAction";
+import { useProfile } from "@/hooks/useProfile";
 
 // --- Empty State Component ---
 const EmptyState = ({
@@ -39,6 +40,7 @@ const DisplayAllRides = () => {
   const { rides, loading: ridesLoading, bookRide } = useRideOffers();
   const { bookedRides, loading: bookedRidesLoading } = useRideBookings();
   const { rideRequests, loading: requestsLoading } = useRideRequests();
+  const { profile } = useProfile();
   const { user } = useUser();
 
   // --- Filtering Logic ---
@@ -88,23 +90,42 @@ const DisplayAllRides = () => {
         onSearchChange={setSearchQuery}
       />
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger
             value="offers"
-            className={cn("cursor-pointer", activeTab === "offers" ? "bg-primary-foreground! text-primary-foreground" : "")}
+            className={cn(
+              "cursor-pointer",
+              activeTab === "offers"
+                ? "bg-primary-foreground! text-primary-foreground"
+                : ""
+            )}
           >
             Ride Offers ({filteredRidesOffers.length})
           </TabsTrigger>
           <TabsTrigger
             value="requests"
-            className={cn("cursor-pointer", activeTab === "requests" ? "bg-primary-foreground! text-primary-foreground" : "")}
+            className={cn(
+              "cursor-pointer",
+              activeTab === "requests"
+                ? "bg-primary-foreground! text-primary-foreground"
+                : ""
+            )}
           >
             Ride Requests ({filteredRideRequests.length})
           </TabsTrigger>
           <TabsTrigger
             value="booked"
-            className={cn("cursor-pointer", activeTab === "booked" ? "bg-primary-foreground! text-primary-foreground" : "")}
+            className={cn(
+              "cursor-pointer",
+              activeTab === "booked"
+                ? "bg-primary-foreground! text-primary-foreground"
+                : ""
+            )}
           >
             Booked Rides ({filteredRideBookings.length})
           </TabsTrigger>
@@ -113,7 +134,9 @@ const DisplayAllRides = () => {
         {/* Offered Rides */}
         <TabsContent value="offers" className="space-y-4">
           {ridesLoading ? (
-            <p className="text-center text-muted-foreground">Loading rides...</p>
+            <p className="text-center text-muted-foreground">
+              Loading rides...
+            </p>
           ) : filteredRidesOffers.length === 0 ? (
             <EmptyState
               icon={Users}
@@ -134,7 +157,9 @@ const DisplayAllRides = () => {
         {/* Requested Rides */}
         <TabsContent value="requests" className="space-y-4">
           {requestsLoading ? (
-            <p className="text-center text-muted-foreground">Loading ride requests...</p>
+            <p className="text-center text-muted-foreground">
+              Loading ride requests...
+            </p>
           ) : filteredRideRequests.length === 0 ? (
             <EmptyState
               icon={HandHeart}
@@ -143,7 +168,11 @@ const DisplayAllRides = () => {
             />
           ) : (
             filteredRideRequests.map((req) => (
-              <RideRequestCard key={req.id} request={req} onRespond={() => {}} />
+              <RideRequestCard
+                key={req.id}
+                request={req}
+                onRespond={() => {}}
+              />
             ))
           )}
         </TabsContent>
@@ -151,7 +180,9 @@ const DisplayAllRides = () => {
         {/* Booked Rides */}
         <TabsContent value="booked" className="space-y-8">
           {bookedRidesLoading ? (
-            <p className="text-center text-muted-foreground">Loading booked rides...</p>
+            <p className="text-center text-muted-foreground">
+              Loading booked rides...
+            </p>
           ) : bookedRides.length === 0 ? (
             <EmptyState
               icon={CheckCircle}
@@ -166,8 +197,8 @@ const DisplayAllRides = () => {
                 {filteredRideBookings
                   .filter(
                     (b) =>
-                      b.passenger_id === user?.id ||
-                      b.ride_request?.passenger?.id === user?.id
+                      b.passenger_id === profile?.id ||
+                      b.ride_request?.passenger?.id === profile?.id
                   )
                   .map((b) => (
                     <RideBookedCard
@@ -185,17 +216,20 @@ const DisplayAllRides = () => {
               <div>
                 <h3 className="text-lg font-semibold mb-3">As Driver</h3>
                 {filteredRideBookings
-                  .filter((b) => b.ride?.driver?.id === user?.id)
-                  .map((b) => (
-                    <RideBookedCard
-                      key={b.id}
-                      booking={b}
-                      onMessage={() => redirect("/chat")}
-                      onTrack={() => {}}
-                      onRate={() => {}}
-                      onDetails={() => {}}
-                    />
-                  ))}
+                  .filter((b) => b.ride?.driver?.id === profile?.id)
+                  .map((b) => {
+                    console.log("Rendering booked ride as driver:", b);
+                    return (
+                      <RideBookedCard
+                        key={b.id}
+                        booking={b}
+                        onMessage={() => redirect("/chat")}
+                        onTrack={() => {}}
+                        onRate={() => {}}
+                        onDetails={() => {}}
+                      />
+                    );
+                  })}
               </div>
             </>
           )}
