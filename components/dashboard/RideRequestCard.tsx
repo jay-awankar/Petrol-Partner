@@ -36,7 +36,7 @@ const RideRequestCard = ({ request, onRespond }: { request: any; onRespond: () =
             </div>
             <div className="flex flex-col items-end space-y-1">
               <Badge variant="secondary">Requesting</Badge>
-              <span className="text-lg font-bold text-secondary">≤${request.price_per_seat}</span>
+              <span className="text-lg font-bold text-secondary">≤₹{request.price_per_seat}</span>
             </div>
           </div>
   

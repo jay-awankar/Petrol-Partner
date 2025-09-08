@@ -34,11 +34,13 @@ const RideBookedCard = ({
     return {
       role,
       person,
-      avgRating: person?.avg_rating ?? 0,
+      avgRating: person?.avg_rating ?? 0.0,
       from: ride?.from_location || rideRequest?.from_location,
       to: ride?.to_location || rideRequest?.to_location,
       departureTime: ride?.departure_time || rideRequest?.preferred_departure_time,
       status: ride?.status || rideRequest?.status,
+      seats_booked: booking?.seats_booked || 0,
+      total_price: booking?.total_price || 0,
       description: ride?.description || rideRequest?.description,
     };
   };
@@ -78,7 +80,7 @@ const RideBookedCard = ({
               <Badge variant="outline" className="border-green-500 text-green-700 bg-green-50">
                 {role}
               </Badge>
-              <span className="text-lg font-bold text-green-600">₹{booking.total_amount}</span>
+              <span className="text-lg font-bold text-green-600">₹{booking.total_price}</span>
               <span className="text-xs text-muted-foreground">
                 {booking.seats_booked} seat{booking.seats_booked > 1 ? "s" : ""}
               </span>

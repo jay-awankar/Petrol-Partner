@@ -217,9 +217,7 @@ const DisplayAllRides = () => {
                 <h3 className="text-lg font-semibold mb-3">As Driver</h3>
                 {filteredRideBookings
                   .filter((b) => b.ride?.driver?.id === profile?.id)
-                  .map((b) => {
-                    console.log("Rendering booked ride as driver:", b);
-                    return (
+                  .map((b) => (
                       <RideBookedCard
                         key={b.id}
                         booking={b}
@@ -228,8 +226,7 @@ const DisplayAllRides = () => {
                         onRate={() => {}}
                         onDetails={() => {}}
                       />
-                    );
-                  })}
+                  ))}
               </div>
             </>
           )}

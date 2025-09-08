@@ -19,7 +19,7 @@ export function useRideRequests() {
         .from("ride_requests")
         .select(`
           *,
-          passenger:profiles(id, full_name, avatar_url, college, phone)
+          passenger:profiles(id, full_name, avatar_url, college, phone, avg_rating)
         `)
         .eq("status", "active")
         .order("preferred_departure_time", { ascending: true });
@@ -29,13 +29,6 @@ export function useRideRequests() {
         setRideRequests([]);
         return;
       }
-
-      // 2️⃣ Fetch passenger ratings
-      const passengerIds = requestsData.map((r: any) => r.passenger_id);
-      const { data: ratingsData } = await supabaseClient
-        .from("profile_ratings")
-        .select("profile_id, avg_rating")
-        .in("profile_id", passengerIds);
 
       // 3️⃣ Fetch bookings per ride request
       const requestIds = requestsData.map((r: any) => r.id);
@@ -47,7 +40,6 @@ export function useRideRequests() {
 
       // 4️⃣ Merge everything
       const mergedRequests: RideRequest[] = requestsData.map((req: any) => {
-        const ratingEntry = ratingsData?.find((r: any) => r.profile_id === req.passenger_id);
         const totalBookedSeats = bookingsData
           ?.filter((b: any) => b.ride_request_id === req.id)
           .reduce((sum: number, b: any) => sum + b.seats_booked, 0) || 0;
@@ -56,7 +48,6 @@ export function useRideRequests() {
           ...req,
           passenger: {
             ...req.passenger,
-            avg_rating: ratingEntry?.avg_rating ?? 0,
           },
           seatsAvailable: totalBookedSeats < req.requested_seats,
         };

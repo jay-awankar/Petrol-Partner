@@ -38,7 +38,7 @@ const RideOfferCard = ({
                 {ride.driver?.full_name || "Unknown Driver"}
               </h3>
               <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                <span>★ {ride.driver?.rating}</span>
+                <span>★ {ride.driver?.avg_rating}</span>
                 <span>•</span>
                 <span>{ride.driver?.college || "College"}</span>
               </div>
@@ -47,7 +47,7 @@ const RideOfferCard = ({
           <div className="flex flex-col items-end space-y-1">
             <Badge variant="default">Offering</Badge>
             <span className="text-lg font-bold text-primary">
-              ${ride.price_per_seat}
+              ₹{ride.price_per_seat}
             </span>
           </div>
         </div>

@@ -29,7 +29,7 @@ export function useRideOffers() {
           description,
           created_at,
           updated_at,
-          driver:profiles(id, full_name, avatar_url, college)
+          driver:profiles(id, full_name, avatar_url, college, avg_rating, phone)
         `)
         .order("departure_time", { ascending: false });
 
@@ -49,26 +49,16 @@ export function useRideOffers() {
 
       if (bookingsError) throw bookingsError;
 
-      // 3️⃣ Fetch driver ratings
-      const driverIds = ridesData.map(r => r.driver_id);
-      const { data: ratings } = await supabaseClient
-        .from("profile_ratings")
-        .select("profile_id, avg_rating")
-        .in("profile_id", driverIds);
-
       // 4️⃣ Merge bookings and ratings
       const ridesWithInfo = ridesData.map(ride => {
         const totalBookedSeats = bookings
           ?.filter(b => b.ride_id === ride.id)
           .reduce((sum, b) => sum + b.seats_booked, 0) || 0;
 
-        const driverRating = ratings?.find(r => r.profile_id === ride.driver_id);
-
         return {
           ...ride,
           driver: {
             ...ride.driver,
-            rating: driverRating?.avg_rating || 0,
           },
           available_seats: ride.available_seats - totalBookedSeats,
           isAvailable: ride.available_seats - totalBookedSeats > 0,
