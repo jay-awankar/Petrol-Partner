@@ -33,7 +33,7 @@ const Profile = () => {
   });
 
   const { profile, loading: loadingProfile, updateProfile, fetchUserStats } = useProfile();
-  const { loading: loadingRatings, averageRating, fetchUserRatings } = useRatings();
+  const { fetchUserRatings } = useRatings();
   const { user } = useUser();
 
   useEffect(() => {
@@ -152,7 +152,7 @@ const Profile = () => {
                 <div className="flex items-center space-x-4 text-sm text-muted-foreground mb-3">
                   <div className="flex items-center space-x-1">
                     <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                    <p>{loadingRatings ? "0.0" : averageRating ? null : 0.0}</p>
+                    <p>{loadingProfile ? "0.0" : profile.avg_rating ? profile.avg_rating : 0.0}</p>
                   </div>
                   <span>•</span>
                   <span>{userStats.totalRides} rides</span>
@@ -177,7 +177,7 @@ const Profile = () => {
           
           <Card className="hover:shadow-soft hover:scale-105 transition-all duration-300 cursor-pointer">
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-primary animate-pulse">{loadingRatings ? "..." : averageRating ? null : 0.0}</div>
+              <div className="text-2xl font-bold text-primary animate-pulse">{loadingProfile ? "..." : profile.avg_rating ? profile.avg_rating : 0.0}</div>
               <p className="text-sm text-muted-foreground">Average Rating</p>
             </CardContent>
           </Card>

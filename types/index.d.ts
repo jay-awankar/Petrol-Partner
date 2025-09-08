@@ -247,6 +247,7 @@ interface UserProfile {
     full_name: string;
     college: string;
     phone?: string;
+    avg_rating?: number;
     avatar_url?: string;
     bio?: string;
     verification_status?: 'pending' | 'verified' | 'rejected';
