@@ -85,7 +85,7 @@ interface RideBooking {
         avatar_url?: string;
         college: string;
         phone: string;
-        // avg_rating?: number;
+        avg_rating?: number;
       };
     };
     ride_request?: {
@@ -104,7 +104,7 @@ interface RideBooking {
         avatar_url?: string;
         college: string;
         phone: string;
-        // avg_rating?: number;
+        avg_rating?: number;
       };
     };
   }
@@ -126,9 +126,9 @@ interface Ride {
       id: string;
       full_name: string;
       avatar_url: string;
-      rating: number;
       college: string;
       phone: string;
+      avg_rating: number;
     };
     isAvailable?: boolean;
 }
@@ -159,6 +159,7 @@ interface RideForRequests {
       avatar_url?: string;
       college: string;
       phone: string;
+      avg_rating?: number;
     };
 }
   
@@ -235,7 +236,7 @@ interface Profile {
     bio?: string;
     created_at: string;
     verification_status?: 'verified' | 'pending' | 'rejected';
-    rating?: number;
+    avg_rating?: number;
     avatar_url?: string;
   }
 

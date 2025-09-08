@@ -23,30 +23,52 @@ export function useRideBookings() {
         .eq("clerk_id", user.id)
         .single();
       if (profileError || !profile) throw new Error("Profile not found");
-      console.log("User profile ID:", profile.id);
-      
 
       // 2️⃣ Fetch bookings + rides + ride_requests + driver/passenger
       const { data, error } = await supabaseClient
-      .from("bookings")
-      .select(`
-        *,
-        ride:rides (
+        .from("bookings")
+        .select(
+          `
           *,
-          driver:profiles(id, full_name, avatar_url, college, phone)
-        ),
-        ride_request:ride_requests (
-          *,
-          passenger:profiles(id, full_name, avatar_url, college, phone)
+          ride:rides (
+            id,
+            from_location,
+            to_location,
+            departure_time,
+            description,
+            status,
+            driver:profiles(
+              id,
+              full_name,
+              avatar_url,
+              college,
+              phone,
+              avg_rating
+            )
+          ),
+          ride_request:ride_requests (
+            id,
+            from_location,
+            to_location,
+            preferred_departure_time,
+            description,
+            status,
+            passenger:profiles(
+              id,
+              full_name,
+              avatar_url,
+              college,
+              phone,
+              avg_rating
+            )
+          )
+        `
         )
-      `)
-      // .eq("driver_id", profile.id)
-      .or(`passenger_id.eq.${profile.id},driver_id.eq.${profile.id}`)
-      .order("created_at", { ascending: false });
-        console.log("Fetched bookings:", data);
+        .or(`passenger_id.eq.${profile.id},driver_id.eq.${profile.id}`)
+        .order("created_at", { ascending: false });
+
       if (error) throw error;
       setBookedRides(data || []);
-
     } catch (err: any) {
       toast.error(`Error fetching booked rides: ${err.message}`);
       setBookedRides([]);
@@ -81,7 +103,10 @@ export function useRideBookings() {
           const rated = await checkIfRated(booking.id, booking.ride.driver_id);
           if (!rated) unrated.push(booking);
         }
-        if (booking.ride_request && booking.ride_request.status === "completed") {
+        if (
+          booking.ride_request &&
+          booking.ride_request.status === "completed"
+        ) {
           const rated = await checkIfRated(
             booking.id,
             booking.ride_request.passenger_id
