@@ -75,41 +75,33 @@ export function useRideOffers() {
   };
 
   const createRide = async (rideData: CreateRideData) => {
-    if (!user) {
-      toast.error("Authentication required", {
-        description: "Please sign in to create a ride",
-      });
-      return { error: new Error("User not authenticated") };
-    }
-
     try {
-      const { data: profile } = await supabaseClient
-        .from("profiles")
-        .select("id")
-        .eq("clerk_id", user.id)
-        .single();
-
-      if (!profile) throw new Error("Profile not found");
-
-      const { data, error } = await supabaseClient
-        .from("rides")
-        .insert([{ ...rideData, driver_id: profile.id }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
+      const res = await fetch("/api/rides/create-ride-offer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(rideData), // Send only ride data
+      });
+  
+      const result = await res.json();
+  
+      if (!res.ok) throw new Error(result.error || "Unknown error");
+  
       toast.success("Ride created successfully!", {
         description: "Your ride is now available for booking",
       });
-
+  
       await fetchRides();
-      return { data, error: null };
+  
+      return { data: result.ride, error: null };
     } catch (error: any) {
       toast.error("Failed to create ride", { description: error.message });
       return { error };
+    } finally {
+      fetchRides();
     }
   };
+  
+  
 
   const bookRide = async (rideId: string, seatsBooked: number) => {
     if (!user) {

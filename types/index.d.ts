@@ -137,7 +137,7 @@ interface CreateRideData {
     from_location: string;
     to_location: string;
     departure_time: string;
-    available_seats: number;
+    total_seats: number;
     price_per_seat: number;
     description?: string;
   }

@@ -19,10 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import {
-  useRideOffers,
-  CreateRideData,
-} from "@/hooks/dashboard-rides/useRideOffers";
+import { useRideOffers } from "@/hooks/dashboard-rides/useRideOffers";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {
@@ -38,7 +35,7 @@ const initialForm: RideFormState = {
   from_location: "",
   to_location: "",
   departure_time: "",
-  available_seats: 1,
+  total_seats: 1,
   price_per_seat: 0,
   description: "",
   date: undefined,
@@ -94,7 +91,7 @@ export function RideOfferDialog({ open, onOpenChange }: CreateRideDialogProps) {
         from_location: formData.from_location.trim(),
         to_location: formData.to_location.trim(),
         departure_time: departureDateTime.toISOString(),
-        available_seats: formData.available_seats,
+        total_seats: formData.total_seats,
         price_per_seat: formData.price_per_seat,
         description: formData.description?.trim() || "",
       };
@@ -230,9 +227,9 @@ export function RideOfferDialog({ open, onOpenChange }: CreateRideDialogProps) {
                 type="number"
                 min={1}
                 max={7}
-                value={formData.available_seats}
+                value={formData.total_seats}
                 onChange={(e) =>
-                  dispatch({ available_seats: parseInt(e.target.value) })
+                  dispatch({ total_seats: parseInt(e.target.value) })
                 }
                 required
               />
