@@ -14,7 +14,7 @@ interface Driver {
   id: string;
   full_name: string;
   avatar_url: string | null;
-  avg_rating: string;
+  avg_rating: number;
   college?: string;
 }
 

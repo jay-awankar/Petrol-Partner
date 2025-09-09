@@ -19,10 +19,7 @@ import {
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
-import {
-  useRideOffers,
-  CreateRideData,
-} from "@/hooks/dashboard-rides/useRideOffers";
+import { useRideOffers } from "@/hooks/dashboard-rides/useRideOffers";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import {

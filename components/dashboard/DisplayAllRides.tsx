@@ -9,7 +9,7 @@ import { useRideRequests } from "@/hooks/dashboard-rides/useRideRequests";
 import { redirect } from "next/navigation";
 import RideRequestCard from "./RideRequestCard";
 import RideBookedCard from "./RideBookedCard";
-import RideOfferCard from "./RideOfferCard";
+import RideOfferCard, { RideOffer } from "./RideOfferCard";
 import { cn } from "@/lib/utils";
 import SearchAndAction from "./SearchAndAction";
 import { useProfile } from "@/hooks/useProfile";
@@ -101,7 +101,7 @@ const DisplayAllRides = () => {
             className={cn(
               "cursor-pointer",
               activeTab === "offers"
-                ? "bg-primary-foreground! text-primary-foreground"
+                ? "bg-primary-foreground text-primary-foreground"
                 : ""
             )}
           >
@@ -147,7 +147,7 @@ const DisplayAllRides = () => {
             filteredRidesOffers.map((ride) => (
               <RideOfferCard
                 key={ride.id}
-                ride={ride}
+                ride={ride as RideOffer}
                 onBook={() => bookRide(ride.id, 1)}
               />
             ))
