@@ -6,6 +6,12 @@ import { useEffect, useState } from "react";
 interface DashboardStats {
   totalForms: number;
   totalResponses: number;
+  totalUsers: number;
+  totalBookedRides: number;
+  dailyRides: number;
+  totalRideOffers: number;
+  totalRevenue: number;
+  totalRideRequests: number;
 }
 
 export const useDashboardStats = () => {
