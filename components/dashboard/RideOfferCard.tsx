@@ -4,16 +4,36 @@ import { motion } from "framer-motion";
 import React from "react";
 import { Card, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
-import { Badge, Clock, MapPin, Users } from "lucide-react";
+import { Clock, MapPin, Users } from "lucide-react";
+import { Badge } from "../ui/badge";
 import { redirect } from "next/navigation";
 import { format } from "date-fns";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+
+interface Driver {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
+  avg_rating: string;
+  college?: string;
+}
+
+export interface RideOffer {
+  id: string;
+  driver: Driver;
+  price_per_seat: number;
+  from_location: string;
+  to_location: string;
+  departure_time: string; // assuming ISO string from API
+  available_seats: number;
+  description?: string;
+}
 
 const RideOfferCard = ({
   ride,
   onBook,
 }: {
-  ride: any;
+  ride: RideOffer;
   onBook: () => void;
 }) => (
   <motion.div
@@ -27,12 +47,17 @@ const RideOfferCard = ({
         <div className="flex items-start justify-between mb-3">
           <div className="flex items-center space-x-3">
             <Avatar className="w-12 h-12 cursor-pointer">
-              <AvatarImage src={ride.driver.avatar_url}
-              onClick={() => redirect(`/profile/${ride.driver?.id}`)} />
+              <AvatarImage
+                src={ride.driver.avatar_url ?? undefined}
+                onClick={() => redirect(`/profile/${ride.driver?.id}`)}
+              />
               <AvatarFallback className="bg-gradient-primary text-white text-2xl">
-                {ride.driver.full_name?.split(' ').map(n => n[0]).join('')}
+                {ride.driver.full_name
+                  ?.split(" ")
+                  .map((n) => n[0])
+                  .join("")}
               </AvatarFallback>
-            </Avatar> 
+            </Avatar>
             <div>
               <h3 className="font-semibold">
                 {ride.driver?.full_name || "Unknown Driver"}

@@ -20,7 +20,7 @@ const EmptyState = ({
   title,
   description,
 }: {
-  icon: any;
+  icon: React.ComponentType<{ className?: string }>;
   title: string;
   description: string;
 }) => (
@@ -218,14 +218,14 @@ const DisplayAllRides = () => {
                 {filteredRideBookings
                   .filter((b) => b.ride?.driver?.id === profile?.id)
                   .map((b) => (
-                      <RideBookedCard
-                        key={b.id}
-                        booking={b}
-                        onMessage={() => redirect("/chat")}
-                        onTrack={() => {}}
-                        onRate={() => {}}
-                        onDetails={() => {}}
-                      />
+                    <RideBookedCard
+                      key={b.id}
+                      booking={b}
+                      onMessage={() => redirect("/chat")}
+                      onTrack={() => {}}
+                      onRate={() => {}}
+                      onDetails={() => {}}
+                    />
                   ))}
               </div>
             </>

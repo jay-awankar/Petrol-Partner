@@ -55,18 +55,17 @@ function formReducer(
 
 // - -- Helper to get nearest 5 min time slot ---
 function getNearest5MinTime(): string {
-    const now = new Date();
-    const minutes = Math.ceil(now.getMinutes() / 5) * 5;
-    if (minutes === 60) {
-      now.setHours(now.getHours() + 1, 0, 0, 0);
-    } else {
-      now.setMinutes(minutes, 0, 0);
-    }
-    const hours = now.getHours().toString().padStart(2, "0");
-    const mins = now.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${mins}`; // always 24h format
+  const now = new Date();
+  const minutes = Math.ceil(now.getMinutes() / 5) * 5;
+  if (minutes === 60) {
+    now.setHours(now.getHours() + 1, 0, 0, 0);
+  } else {
+    now.setMinutes(minutes, 0, 0);
+  }
+  const hours = now.getHours().toString().padStart(2, "0");
+  const mins = now.getMinutes().toString().padStart(2, "0");
+  return `${hours}:${mins}`; // always 24h format
 }
-  
 
 // --- Component ---
 export function RideOfferDialog({ open, onOpenChange }: CreateRideDialogProps) {
@@ -188,36 +187,40 @@ export function RideOfferDialog({ open, onOpenChange }: CreateRideDialogProps) {
               </Popover>
             </div>
             <div className="space-y-2">
-            <Label htmlFor="time">Time</Label>
-            <Select
+              <Label htmlFor="time">Time</Label>
+              <Select
                 onValueChange={(value) => dispatch({ time: value })}
                 value={formData.time}
-            >
+              >
                 <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select time" />
+                  <SelectValue placeholder="Select time" />
                 </SelectTrigger>
                 <SelectContent className="max-h-64 overflow-y-auto">
-                {Array.from({ length: (24 * 60) / 5 }, (_, i) => {
+                  {Array.from({ length: (24 * 60) / 5 }, (_, i) => {
                     const totalMinutes = i * 5;
                     const hours24 = Math.floor(totalMinutes / 60);
                     const minutes = totalMinutes % 60;
 
-                    const value = `${hours24.toString().padStart(2, "0")}:${minutes
-                    .toString()
-                    .padStart(2, "0")}`;
+                    const value = `${hours24
+                      .toString()
+                      .padStart(2, "0")}:${minutes
+                      .toString()
+                      .padStart(2, "0")}`;
 
                     const hours12 = hours24 % 12 || 12;
                     const period = hours24 < 12 ? "AM" : "PM";
-                    const label = `${hours12}:${minutes.toString().padStart(2, "0")} ${period}`;
+                    const label = `${hours12}:${minutes
+                      .toString()
+                      .padStart(2, "0")} ${period}`;
 
                     return (
-                    <SelectItem key={value} value={value}>
+                      <SelectItem key={value} value={value}>
                         {label}
-                    </SelectItem>
+                      </SelectItem>
                     );
-                })}
+                  })}
                 </SelectContent>
-            </Select>
+              </Select>
             </div>
           </div>
 
