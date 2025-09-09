@@ -67,28 +67,28 @@ export function useRideRequests() {
     if (!user) return { error: new Error("User not authenticated") };
 
     try {
-      const { data: profile } = await supabaseClient
-        .from("profiles")
-        .select("id")
-        .eq("clerk_id", user.id)
-        .single();
-
-      if (!profile) throw new Error("Profile not found");
-
-      const { data, error } = await supabaseClient
-        .from("ride_requests")
-        .insert([{ ...requestData, passenger_id: profile.id }])
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      toast.success("Ride request created successfully!");
+      const res = await fetch("/api/rides/create-ride-request", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(requestData), // Send only ride data
+      });
+  
+      const result = await res.json();
+  
+      if (!res.ok) throw new Error(result.error || "Unknown error");
+  
+      toast.success("Ride Request created successfully!", {
+        description: "Your request is now available for booking",
+      });
+  
       await fetchRideRequests();
-      return { data, error: null };
+  
+      return { data: result.ride, error: null };
     } catch (error: any) {
-      toast.error("Failed to create ride request: " + error.message);
+      toast.error("Failed to create ride request", { description: error.message });
       return { error };
+    } finally {
+      fetchRideRequests();
     }
   };
 

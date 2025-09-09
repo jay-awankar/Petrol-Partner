@@ -55,7 +55,6 @@ const RideRequestCard = ({ request, onRespond }: { request: any; onRespond: () =
               <div className="flex items-center space-x-2">
                 <Users className="w-4 h-4" />
                 <span>{request.requested_seats} passenger{request.requested_seats > 1 ? 's' : ''}</span>
-                <span>{request.requested_seats}</span>
               </div>
             </div>
   
