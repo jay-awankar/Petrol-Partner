@@ -117,6 +117,6 @@ const DashboardStats = () => {
       ))}
     </motion.div>
   );
-}
+};
 
 export default DashboardStats;
