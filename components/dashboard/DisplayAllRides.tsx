@@ -192,7 +192,7 @@ const DisplayAllRides = () => {
           ) : (
             <>
               {/* As Passenger */}
-              <div>
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold mb-3">As Passenger</h3>
                 {filteredRideBookings
                   .filter(
@@ -213,7 +213,7 @@ const DisplayAllRides = () => {
               </div>
 
               {/* As Driver */}
-              <div>
+              <div className="space-y-4">
                 <h3 className="text-lg font-semibold mb-3">As Driver</h3>
                 {filteredRideBookings
                   .filter((b) => b.ride?.driver?.id === profile?.id)
