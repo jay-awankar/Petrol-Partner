@@ -37,14 +37,7 @@ export function useRideBookings() {
             departure_time,
             description,
             status,
-            driver:profiles(
-              id,
-              full_name,
-              avatar_url,
-              college,
-              phone,
-              avg_rating
-            )
+            driver:profiles(id, full_name, avatar_url, college, phone, avg_rating)
           ),
           ride_request:ride_requests (
             id,
@@ -53,21 +46,33 @@ export function useRideBookings() {
             preferred_departure_time,
             description,
             status,
-            passenger:profiles(
-              id,
-              full_name,
-              avatar_url,
-              college,
-              phone,
-              avg_rating
-            )
+            passenger:profiles(id, full_name, avatar_url, college, phone, avg_rating)
+          ),
+          driver:profiles!bookings_driver_id_fkey(
+            id,
+            full_name,
+            avatar_url,
+            college,
+            phone,
+            avg_rating
+          ),
+          passenger:profiles!bookings_passenger_id_fkey1(
+            id,
+            full_name,
+            avatar_url,
+            college,
+            phone,
+            avg_rating
           )
         `
         )
         .or(`passenger_id.eq.${profile.id},driver_id.eq.${profile.id}`)
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching booked rides:", error);
+        throw error;
+      }
       setBookedRides(data || []);
     } catch (err: any) {
       toast.error(`Error fetching booked rides: ${err.message}`);

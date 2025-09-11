@@ -107,6 +107,23 @@ interface RideBooking {
         avg_rating?: number;
       };
     };
+    driver?: {
+      id: string;
+      full_name: string;
+      avatar_url?: string;
+      college: string;
+      phone: string;
+      avg_rating?: number;
+    };
+  
+    passenger?: {
+      id: string;
+      full_name: string;
+      avatar_url?: string;
+      college: string;
+      phone: string;
+      avg_rating?: number;
+    };
   }
 
 // - Ride type (used in ride listings and ride details)

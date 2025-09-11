@@ -204,6 +204,7 @@ const DisplayAllRides = () => {
                     <RideBookedCard
                       key={b.id}
                       booking={b}
+                      currentUserId={profile?.id}
                       onMessage={() => redirect("/chat")}
                       onTrack={() => {}}
                       onRate={() => {}}
@@ -218,14 +219,15 @@ const DisplayAllRides = () => {
                 {filteredRideBookings
                   .filter((b) => b.ride?.driver?.id === profile?.id)
                   .map((b) => (
-                      <RideBookedCard
-                        key={b.id}
-                        booking={b}
-                        onMessage={() => redirect("/chat")}
-                        onTrack={() => {}}
-                        onRate={() => {}}
-                        onDetails={() => {}}
-                      />
+                    <RideBookedCard
+                      key={b.id}
+                      booking={b}
+                      currentUserId={profile?.id}
+                      onMessage={() => redirect("/chat")}
+                      onTrack={() => {}}
+                      onRate={() => {}}
+                      onDetails={() => {}}
+                    />
                   ))}
               </div>
             </>
