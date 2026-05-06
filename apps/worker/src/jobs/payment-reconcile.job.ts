@@ -5,6 +5,7 @@ import { withTransaction } from "../db/pool";
 import { logger } from "../config/logger";
 import { getRazorpayClient } from "../shared/payments/razorpay";
 import {
+  paymentReconcileQueue,
   paymentReconcileQueueName,
   redisConnection,
   settlementOverdueQueue,
@@ -13,6 +14,7 @@ import {
 interface PaymentReconcileJobData {
   paymentOrderId?: string;
   webhookEventId?: string;
+  reconcileAttempt?: number;
 }
 
 interface LockedWebhookEventRow {
@@ -57,6 +59,35 @@ interface ReconcileResolution {
 
 function buildDedupeKey(type: string, paymentOrderId: string) {
   return `${type}:${paymentOrderId}`;
+}
+
+const PENDING_RECONCILE_MAX_ATTEMPTS = 6;
+const PENDING_RECONCILE_RETRY_DELAYS_MS = [15_000, 30_000, 60_000, 120_000, 300_000, 600_000];
+
+async function schedulePendingReconcileRetry(paymentOrderId: string, currentAttempt = 0) {
+  const nextAttempt = currentAttempt + 1;
+  if (nextAttempt > PENDING_RECONCILE_MAX_ATTEMPTS) {
+    return;
+  }
+
+  const delay =
+    PENDING_RECONCILE_RETRY_DELAYS_MS[Math.min(nextAttempt - 1, PENDING_RECONCILE_RETRY_DELAYS_MS.length - 1)];
+
+  await paymentReconcileQueue.add(
+    "reconcile-payment",
+    {
+      paymentOrderId,
+      reconcileAttempt: nextAttempt,
+    },
+    {
+      jobId: `payment-order:${paymentOrderId}:retry:${nextAttempt}`,
+      delay,
+      attempts: 5,
+      backoff: { type: "exponential", delay: 1000 },
+      removeOnComplete: true,
+      removeOnFail: 1000,
+    },
+  );
 }
 
 async function updateWebhookProcessingStatus(input: {
@@ -569,6 +600,10 @@ export function createPaymentReconcileWorker() {
 
         if ("settlementId" in result && result.settlementId && result.outcome === "captured") {
           await clearSettlementOverdueJob(result.settlementId);
+        }
+
+        if (result.outcome === "pending" && result.paymentOrderId) {
+          await schedulePendingReconcileRetry(result.paymentOrderId, data.reconcileAttempt ?? 0);
         }
 
         logger.info(

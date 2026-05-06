@@ -89,6 +89,12 @@ export default function PaymentBookingCard({
           </Button>
         ) : null}
 
+        {card.canRetryVerification ? (
+          <Button variant="outline" onClick={onRefresh} disabled={loading}>
+            {loading ? "Checking..." : "Check Verification"}
+          </Button>
+        ) : null}
+
         {card.canMarkOfflinePaid ? (
           <Button variant="outline" onClick={onOpenMarkPaidSheet} disabled={loading}>
             Mark Offline Paid

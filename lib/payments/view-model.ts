@@ -30,6 +30,7 @@ export type PaymentCardViewModel = {
   canMarkOfflinePaid: boolean;
   canConfirmOffline: boolean;
   canRefresh: boolean;
+  canRetryVerification: boolean;
   isActionRequired: boolean;
 };
 
@@ -42,6 +43,10 @@ type TransactionState = {
   } | null;
   payment: {
     booking_payment_state?: string;
+    reconcile?: {
+      payment_order_updated_at?: string | null;
+      payment_attempt_count?: number;
+    };
   } | null;
 };
 
@@ -49,9 +54,12 @@ function deriveStatusHint(input: {
   settlementStatus: string;
   paymentState: string;
   dueAt: string | null;
+  paymentAttemptCount: number;
 }) {
   if (input.paymentState === "verification_pending" || input.paymentState === "order_created") {
-    return "Online payment verification in progress";
+    return input.paymentAttemptCount > 0
+      ? `Online payment verification in progress (${input.paymentAttemptCount} checks)`
+      : "Online payment verification in progress";
   }
 
   if (input.paymentState === "paid_escrow" || input.settlementStatus === "settled") {
@@ -121,6 +129,9 @@ export function buildPaymentCardViewModel(input: {
     Number(booking.total_payable ?? booking.total_price ?? 0) * 100,
   );
   const dueAt = transaction?.settlement?.due_at ?? null;
+  const paymentAttemptCount = Number(
+    transaction?.payment?.reconcile?.payment_attempt_count ?? 0,
+  );
   const isPassenger = booking.user_role === "passenger";
   const isDriver = booking.user_role === "driver";
 
@@ -140,6 +151,7 @@ export function buildPaymentCardViewModel(input: {
       settlementStatus,
       paymentState,
       dueAt,
+      paymentAttemptCount,
     }),
     canPayOnline:
       isPassenger && (settlementStatus === "due" || settlementStatus === "overdue"),
@@ -147,6 +159,9 @@ export function buildPaymentCardViewModel(input: {
       isPassenger && (settlementStatus === "due" || settlementStatus === "overdue"),
     canConfirmOffline: isDriver && settlementStatus === "passenger_marked_paid",
     canRefresh: true,
+    canRetryVerification:
+      isPassenger &&
+      (paymentState === "order_created" || paymentState === "verification_pending"),
     isActionRequired:
       settlementStatus === "due" ||
       settlementStatus === "overdue" ||

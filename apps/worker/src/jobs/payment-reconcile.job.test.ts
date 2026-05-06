@@ -4,12 +4,14 @@ const {
   withTransactionMock,
   fetchPaymentMock,
   getJobMock,
+  paymentReconcileAddMock,
   loggerInfoMock,
   workerConstructorMock,
 } = vi.hoisted(() => ({
   withTransactionMock: vi.fn(),
   fetchPaymentMock: vi.fn(),
   getJobMock: vi.fn(),
+  paymentReconcileAddMock: vi.fn(async () => undefined),
   loggerInfoMock: vi.fn(),
   workerConstructorMock: vi.fn(function WorkerMock(
     _queueName: string,
@@ -52,6 +54,9 @@ vi.mock("../shared/payments/razorpay", () => ({
 vi.mock("../queues", () => ({
   paymentReconcileQueueName: "payment-reconcile",
   redisConnection: {},
+  paymentReconcileQueue: {
+    add: paymentReconcileAddMock,
+  },
   settlementOverdueQueue: {
     getJob: getJobMock,
   },
@@ -356,5 +361,57 @@ describe("payment-reconcile.job", () => {
     expect(hasSqlCall(queryMock, "SET status = 'settled'")).toBe(true);
     expect(hasSqlCall(queryMock, "UPDATE outstanding_balances")).toBe(true);
     expect(hasSqlCall(queryMock, "SET payment_state = 'paid_escrow'")).toBe(true);
+  });
+
+  it("schedules retry when reconciliation stays pending", async () => {
+    mockTransactionResponses([
+      createQueryResult([
+        {
+          id: "payment-order-8",
+          booking_id: "booking-8",
+          user_id: "user-1",
+          provider_order_id: "order_provider_8",
+          status: "attempted",
+        },
+      ]),
+      createQueryResult([
+        {
+          settlement_id: "settlement-8",
+          settlement_status: "due",
+          total_due_paise: 7100,
+          payer_user_id: "user-1",
+          payee_user_id: "user-2",
+          booking_id: "booking-8",
+          booking_payment_state: "verification_pending",
+        },
+      ]),
+      createQueryResult([
+        {
+          id: "attempt-8",
+          provider_payment_id: "pay_pending_8",
+          status: "client_verified",
+        },
+      ]),
+    ]);
+
+    fetchPaymentMock.mockResolvedValue({
+      id: "pay_pending_8",
+      order_id: "order_provider_8",
+      status: "authorized",
+    });
+
+    const worker = createPaymentReconcileWorker() as unknown as {
+      processor: (job: { id: string; data: { paymentOrderId: string; reconcileAttempt: number } }) => Promise<void>;
+    };
+
+    await worker.processor({
+      id: "job-pending-8",
+      data: {
+        paymentOrderId: "payment-order-8",
+        reconcileAttempt: 0,
+      },
+    });
+
+    expect(paymentReconcileAddMock).toHaveBeenCalledOnce();
   });
 });

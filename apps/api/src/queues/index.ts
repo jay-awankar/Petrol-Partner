@@ -148,6 +148,8 @@ export async function cancelSettlementOverdue(settlementId: string) {
 export async function schedulePaymentReconcile(input: {
   paymentOrderId?: string;
   webhookEventId?: string;
+  delayMs?: number;
+  jobIdSuffix?: string;
 }) {
   if (!paymentReconcileQueue) {
     return;
@@ -163,13 +165,16 @@ export async function schedulePaymentReconcile(input: {
     throw new Error("Payment reconcile job requires paymentOrderId or webhookEventId");
   }
 
+  const normalizedDelay = Math.max(input.delayMs ?? 0, 0);
+  const effectiveJobId = input.jobIdSuffix ? `${jobId}:${input.jobIdSuffix}` : jobId;
+
   await paymentReconcileQueue.add(
     "reconcile-payment",
     {
       paymentOrderId: input.paymentOrderId,
       webhookEventId: input.webhookEventId,
     },
-    buildJobOptions(jobId),
+    buildJobOptions(effectiveJobId, normalizedDelay > 0 ? normalizedDelay : undefined),
   );
 }
 

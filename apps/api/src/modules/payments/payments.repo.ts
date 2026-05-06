@@ -81,6 +81,8 @@ interface PaymentStatusRow {
   provider_payment_id: string | null;
   payment_attempt_status: string | null;
   payment_attempt_updated_at: Date | string | null;
+  payment_order_updated_at: Date | string | null;
+  payment_attempt_count: string | number | null;
 }
 
 function toIso(value: Date | string | null) {
@@ -167,6 +169,10 @@ export function mapPaymentStatus(row: PaymentStatusRow) {
           expires_at: toIso(row.payment_order_expires_at),
         }
       : null,
+    reconcile: {
+      payment_order_updated_at: toIso(row.payment_order_updated_at),
+      payment_attempt_count: Number(row.payment_attempt_count ?? 0),
+    },
     latest_attempt: row.payment_attempt_id
       ? {
           id: row.payment_attempt_id,
@@ -573,6 +579,12 @@ export async function findPaymentStatusByBookingIdForUser(bookingId: string, use
        po.amount_paise AS payment_order_amount_paise,
        po.currency AS payment_order_currency,
        po.expires_at AS payment_order_expires_at,
+       po.updated_at AS payment_order_updated_at,
+       (
+         SELECT COUNT(*)::text
+         FROM payment_attempts pa_count
+         WHERE pa_count.payment_order_id = po.id
+       ) AS payment_attempt_count,
        pa.id AS payment_attempt_id,
        pa.provider_payment_id,
        pa.status AS payment_attempt_status,
