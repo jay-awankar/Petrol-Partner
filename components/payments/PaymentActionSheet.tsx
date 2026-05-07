@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -40,6 +40,12 @@ export default function PaymentActionSheet({
   onConfirm,
 }: PaymentActionSheetProps) {
   const [selected, setSelected] = useState<string>(options[0]?.value ?? "");
+
+  useEffect(() => {
+    if (open) {
+      setSelected(options[0]?.value ?? "");
+    }
+  }, [open, options]);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>

@@ -45,6 +45,10 @@ type SettlementRecord = {
 
 type PaymentRecord = {
   booking_payment_state?: string;
+  reconcile?: {
+    payment_order_updated_at?: string | null;
+    payment_attempt_count?: number;
+  };
 };
 
 type TransactionState = {
@@ -155,6 +159,27 @@ export default function PaymentsPage() {
     });
   }, [completedBookings, refreshTransaction]);
 
+  useEffect(() => {
+    const pendingBookingIds = Object.entries(transactions)
+      .filter(([, state]) => {
+        const paymentState = state?.payment?.booking_payment_state;
+        return paymentState === "order_created" || paymentState === "verification_pending";
+      })
+      .map(([bookingId]) => bookingId);
+
+    if (!pendingBookingIds.length) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      pendingBookingIds.forEach((bookingId) => {
+        void refreshTransaction(bookingId);
+      });
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [refreshTransaction, transactions]);
+
   const refreshAll = useCallback(async () => {
     setRefreshingAll(true);
 
@@ -242,7 +267,7 @@ export default function PaymentsPage() {
           });
 
           razorpay.on("payment.failed", () => {
-            reject(new Error("Payment failed. Please retry."));
+            reject(new Error("Payment failed. Please retry from the payment card."));
           });
 
           razorpay.open();
@@ -326,6 +351,11 @@ export default function PaymentsPage() {
 
     if (message.includes("VERIFICATION") || message.includes("ELIGIBILITY")) {
       toast.error("Verification or eligibility requirement is pending.");
+      return;
+    }
+
+    if (message.includes("cancelled")) {
+      toast.info("Payment was cancelled.");
       return;
     }
 

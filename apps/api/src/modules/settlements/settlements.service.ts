@@ -582,7 +582,7 @@ export async function resolveDispute(
         );
         await settlementsRepo.updateOutstandingBalanceStatus(
           settlement.id,
-          "waived",
+          "open",
           client,
           { resolvedBy: actorUserId, resolution: "reopen_due" },
         );

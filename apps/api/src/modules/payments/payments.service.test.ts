@@ -107,11 +107,14 @@ describe("payments.service", () => {
     });
 
     expect(result).toMatchObject({
+      accepted: true,
       reused: false,
       order_id: "order_123",
       amount_paise: 16500,
       booking_id: "booking-1",
       payment_order_id: "payment-order-1",
+      payment_state: "order_created",
+      reconcile_status: "order_created",
     });
     expect(paymentsRepo.insertPaymentOrder).toHaveBeenCalledOnce();
     expect(settlementsRepo.updateSettlement).toHaveBeenCalledWith(
@@ -166,9 +169,12 @@ describe("payments.service", () => {
     });
 
     expect(result).toMatchObject({
+      accepted: true,
       reused: true,
       order_id: "order_existing",
       payment_order_id: "payment-order-2",
+      payment_state: "order_created",
+      reconcile_status: "order_created",
     });
     expect(paymentsRepo.insertPaymentOrder).not.toHaveBeenCalled();
   });
@@ -241,6 +247,7 @@ describe("payments.service", () => {
       booking_id: "booking-4",
       payment_order_id: "payment-order-4",
       payment_state: "verification_pending",
+      reconcile_status: "verification_pending",
     });
     expect(paymentsRepo.upsertPaymentAttemptByProviderPaymentId).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -270,6 +277,47 @@ describe("payments.service", () => {
     } satisfies Partial<AppError>);
 
     expect(paymentsRepo.upsertPaymentAttemptByProviderPaymentId).not.toHaveBeenCalled();
+  });
+
+  it("maps provider order-create failures to explicit error", async () => {
+    vi.mocked(paymentsRepo.findPaymentContextForUpdate).mockResolvedValue({
+      booking_id: "booking-provider-fail",
+      booking_status: "completed",
+      booking_payment_state: "unpaid",
+      passenger_id: "user-1",
+      driver_id: "user-2",
+      settlement_id: "settlement-provider-fail",
+      payer_user_id: "user-1",
+      payee_user_id: "user-2",
+      settlement_status: "due",
+      preferred_payment_method: null,
+      total_due_paise: 16500,
+      paid_amount_paise: 0,
+      due_at: null,
+    });
+    vi.mocked(paymentsRepo.findLatestReusablePaymentOrder).mockResolvedValue(null);
+    vi.mocked(razorpayShared.getRazorpayClient).mockReturnValue({
+      orders: {
+        create: vi.fn(async () => {
+          throw {
+            statusCode: 400,
+            error: {
+              code: "BAD_REQUEST_ERROR",
+              description: "Invalid order request",
+            },
+          };
+        }),
+      },
+    } as any);
+
+    await expect(
+      paymentsService.createPaymentOrder("user-1", {
+        bookingId: "booking-provider-fail",
+      }),
+    ).rejects.toMatchObject({
+      code: "PAYMENT_PROVIDER_ORDER_CREATE_FAILED",
+      statusCode: 502,
+    } satisfies Partial<AppError>);
   });
 
   it("persists webhook intake and enqueues reconcile", async () => {
@@ -369,6 +417,10 @@ describe("payments.service", () => {
         currency: "INR",
         expires_at: null,
       },
+      reconcile: {
+        payment_order_updated_at: new Date().toISOString(),
+        payment_attempt_count: 1,
+      },
       latest_attempt: {
         id: "attempt-6",
         provider_payment_id: "pay_6",
@@ -391,5 +443,9 @@ describe("payments.service", () => {
       total_outstanding: 88,
     });
     expect(result.booking_payment_state).toBe("failed");
+    expect(result.reconcile).toEqual({
+      payment_order_updated_at: expect.any(String),
+      payment_attempt_count: 1,
+    });
   });
 });

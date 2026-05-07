@@ -1,4 +1,5 @@
 import { withTransaction } from "../../db/transaction";
+import { env } from "../../config/env";
 import { schedulePaymentReconcile } from "../../queues";
 import { AppError } from "../../shared/errors/app-error";
 import {
@@ -156,8 +157,9 @@ export async function createPaymentOrder(userId: string, input: CreatePaymentOrd
       };
 
       return {
+        accepted: true,
         reused: true,
-        key_id: process.env.RAZORPAY_KEY_ID ?? null,
+        key_id: env.RAZORPAY_KEY_ID ?? null,
         order_id: reusableOrder.provider_order_id,
         amount_paise: reusableOrder.amount_paise,
         amount: reusableOrder.amount,
@@ -165,6 +167,8 @@ export async function createPaymentOrder(userId: string, input: CreatePaymentOrd
         booking_id: context.booking_id,
         payment_order_id: reusableOrder.id,
         expires_at: reusableOrder.expires_at,
+        payment_state: "order_created",
+        reconcile_status: "order_created",
       };
     }
 
@@ -173,16 +177,41 @@ export async function createPaymentOrder(userId: string, input: CreatePaymentOrd
       addMinutes(ORDER_EXPIRY_MINUTES),
       context.due_at ? new Date(context.due_at) : null,
     );
-    const providerOrder = await razorpay.orders.create({
-      amount: context.total_due_paise,
-      currency: "INR",
-      receipt: buildReceipt(context.booking_id),
-      notes: {
-        booking_id: context.booking_id,
-        settlement_id: context.settlement_id,
-        payer_user_id: context.payer_user_id,
-      },
-    });
+    let providerOrder: {
+      id: string;
+      amount: number;
+      currency: string;
+    };
+
+    try {
+      providerOrder = (await razorpay.orders.create({
+        amount: context.total_due_paise,
+        currency: "INR",
+        receipt: buildReceipt(context.booking_id),
+        notes: {
+          booking_id: context.booking_id,
+          settlement_id: context.settlement_id,
+          payer_user_id: context.payer_user_id,
+        },
+      })) as {
+        id: string;
+        amount: number;
+        currency: string;
+      };
+    } catch (error: any) {
+      throw new AppError(
+        502,
+        "Unable to create online payment order with provider",
+        "PAYMENT_PROVIDER_ORDER_CREATE_FAILED",
+        {
+          provider: PROVIDER,
+          provider_status: error?.statusCode ?? null,
+          provider_error_code: error?.error?.code ?? null,
+          provider_description:
+            error?.error?.description ?? error?.message ?? "provider_order_create_failed",
+        },
+      );
+    }
     const providerOrderAmount = Number(providerOrder.amount);
 
     const paymentOrder = await paymentsRepo.insertPaymentOrder(
@@ -218,8 +247,9 @@ export async function createPaymentOrder(userId: string, input: CreatePaymentOrd
     };
 
     return {
+      accepted: true,
       reused: false,
-      key_id: process.env.RAZORPAY_KEY_ID ?? null,
+      key_id: env.RAZORPAY_KEY_ID ?? null,
       order_id: paymentOrder.provider_order_id,
       amount_paise: paymentOrder.amount_paise,
       amount: paymentOrder.amount,
@@ -227,6 +257,8 @@ export async function createPaymentOrder(userId: string, input: CreatePaymentOrd
       booking_id: context.booking_id,
       payment_order_id: paymentOrder.id,
       expires_at: paymentOrder.expires_at,
+      payment_state: "order_created",
+      reconcile_status: "order_created",
     };
   });
 
@@ -358,6 +390,8 @@ export async function clientVerifyPayment(userId: string, input: ClientVerifyPay
       payment_order_id: paymentOrder.id,
       payment_state:
         paymentOrder.status === "captured" ? context.booking_payment_state : "verification_pending",
+      reconcile_status:
+        paymentOrder.status === "captured" ? "captured" : "verification_pending",
     };
   });
 
