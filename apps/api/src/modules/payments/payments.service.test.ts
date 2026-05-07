@@ -443,5 +443,9 @@ describe("payments.service", () => {
       total_outstanding: 88,
     });
     expect(result.booking_payment_state).toBe("failed");
+    expect(result.reconcile).toEqual({
+      payment_order_updated_at: expect.any(String),
+      payment_attempt_count: 1,
+    });
   });
 });

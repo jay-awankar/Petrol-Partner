@@ -598,7 +598,8 @@ export async function findPaymentStatusByBookingIdForUser(bookingId: string, use
          status,
          amount_paise,
          currency,
-         expires_at
+         expires_at,
+         updated_at
        FROM payment_orders
        WHERE booking_id = b.id
        ORDER BY created_at DESC
