@@ -2,6 +2,11 @@
 
 **Petrol Partner** is a student-only intercity ride-sharing platform built as a final-year major project.
 It helps college students share private-vehicle trips safely, reduce travel cost, and improve seat utilization through verified, route-based matching.
+<div align=center>
+  <img src="public/Dashboard.png" alt="salesforce-img" width=30% />
+  <img src="public/RideDetails.png" alt="salesforce-img" width=30% />
+  <img src="public/Profile.png" alt="salesforce-img" width=30% />
+</div>
 
 ## Vision
 
